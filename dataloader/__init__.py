@@ -1,10 +1,11 @@
+from dataloader.core import VoxelDataset
+
 
 def get_dataset(mode, return_idx=False):
     ''' Returns the dataset.
 
         Args:
-            model (nn.Module): the model which is used
-            cfg (dict): config dictionary
+            mode (String): determain which set to use
             return_idx (bool): whether to include an ID field
         '''
     # Get split
@@ -14,3 +15,5 @@ def get_dataset(mode, return_idx=False):
         'val': "Path/to/set",
         'test': "Path/to/set",
     }
+
+    return VoxelDataset(splits[mode], return_idx=return_idx)

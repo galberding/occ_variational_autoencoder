@@ -1,19 +1,59 @@
 from onet import OccupancyNetwork
 import torch
-# Create torch device for GPU computing
-is_cuda = (torch.cuda.is_available())
-device = torch.device("cuda" if is_cuda else "cpu")
+from dataloader import get_dataset
+from dataloader.core import collate_remove_none, worker_init_fn
+from checkpoints import CheckpointIO
+import torch.optim as optim
+from tensorboardX import SummaryWriter
+import os
 
 
-# TODO: Load training data
-# TODO: Load validation data
-# TODO: create the model
-# TODO: Restore the model
-# TODO: Validation scores for the model
 
 if __name__ == '__main__':
+    batch_size = 1
+    CHECKPOINT_PATH = "model"
+    OUT_DIR = "out"
+    if not os.path.exists(OUT_DIR):
+        os.makedirs(OUT_DIR)
 
+    # Create torch device for GPU computing
+    is_cuda = (torch.cuda.is_available())
+    device = torch.device("cuda" if is_cuda else "cpu")
+
+    # TODO: Automate dataset creation / adapt paths
+    # # Load training data
+    # train_dataset = get_dataset("train")
+    # # Load validation data
+    # val_dataset = get_dataset("val")
+    #
+    # # Create the dataloader
+    # train_loader = torch.utils.data.DataLoader(
+    #     train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
+    #     collate_fn=collate_remove_none,
+    #     worker_init_fn=worker_init_fn)
+
+
+
+    # create the model
     occ_net = OccupancyNetwork(device=device)
+    optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
+    # nparameters = sum(p.numel() for p in occ_net.parameters())
+    # print(nparameters)
 
-    nparameters = sum(p.numel() for p in occ_net.parameters())
-    print(nparameters)
+    # Restore the model
+    checkpoint_io = CheckpointIO(OUT_DIR, model=occ_net, optimizer=optimizer)
+    try:
+        load_dict = checkpoint_io.load('model.pt')
+    except FileExistsError:
+        load_dict = dict()
+    epoch_it = load_dict.get('epoch_it', -1)
+    it = load_dict.get('it', -1)
+    # metric_val_best = load_dict.get(
+    #     'loss_val_best', -model_selection_sign * np.inf)
+    # TODO: Validation scores for the model
+
+    # Write to tensorboard
+    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
+
+    while True:
+        epoch_it += 1
