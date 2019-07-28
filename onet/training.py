@@ -190,7 +190,7 @@ class Trainer(BaseTrainer):
 
         kwargs = {}
 
-        c = self.model.encode_inputs(inputs)
+        c = (inputs)
         q_z = self.model.infer_z(p, occ, c, **kwargs)
         # print("Point: ", p.size()," Occupancy: ", occ[0])
         z = q_z.rsample()

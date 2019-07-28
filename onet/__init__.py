@@ -42,6 +42,9 @@ class OccupancyNetwork(nn.Module):
             )
 
         self.decoder = decoder(z_dim=z_dim).to(device)
+        self.current_z = 0
+        self.current_mean = 0
+        self.current_std = 0
 
         if encoder_latent is not None:
             if isinstance(encoder_latent, VoxelEncoder):
@@ -75,7 +78,7 @@ class OccupancyNetwork(nn.Module):
         batch_size = p.size(0)
         c = self.encode_inputs(inputs)
         z = self.get_z_from_prior((batch_size,), sample=sample)
-
+        self.current_z = z
 
         # print("Sample z ")
 
@@ -146,6 +149,7 @@ class OccupancyNetwork(nn.Module):
             occ (tensor): occupancy values for occ
             c (tensor): latent conditioned code c
         '''
+        print(c)
         if self.encoder_latent is not None:
             mean_z, logstd_z = self.encoder_latent(p, occ, c, **kwargs)
             # print("Mean: ",mean_z,"\nstd: ", logstd_z)

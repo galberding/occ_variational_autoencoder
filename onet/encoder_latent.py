@@ -136,7 +136,7 @@ class VoxelEncoder(nn.Module):
         batch_size = c.size(0)
 
         c = c.unsqueeze(1)
-        # print(c.double())
+        print(c)
         net = self.conv_in(c)
         # net = self.conv_in2(c)
         net = self.conv_0(self.actvn(net))

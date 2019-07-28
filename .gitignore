@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 .idea/
 data/dataset/
+out/
 
 # C extensions
 *.so

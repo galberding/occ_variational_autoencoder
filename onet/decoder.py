@@ -21,7 +21,7 @@ class Decoder(nn.Module):
         leaky (bool): whether to use leaky ReLUs
     '''
 
-    def __init__(self, dim=3, z_dim=128, c_dim=128,
+    def __init__(self, dim=3, z_dim=128, c_dim=0,
                  hidden_size=128, leaky=False):
         super().__init__()
         self.z_dim = z_dim
@@ -51,7 +51,8 @@ class Decoder(nn.Module):
 
     def forward(self, p, z, c=None, **kwargs):
         batch_size, T, D = p.size()
-
+        # TODO: quick fix for setting the c input
+        c = None
         net = self.fc_p(p)
 
         if self.z_dim != 0:

@@ -1,4 +1,5 @@
 from onet import OccupancyNetwork
+from onet.training import Trainer
 import torch
 from dataloader import get_dataset
 from dataloader.core import collate_remove_none, worker_init_fn
@@ -12,7 +13,7 @@ import os
 if __name__ == '__main__':
     batch_size = 1
     CHECKPOINT_PATH = "model"
-    OUT_DIR = "out"
+    OUT_DIR = "out/pen"
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
 
@@ -21,16 +22,19 @@ if __name__ == '__main__':
     device = torch.device("cuda" if is_cuda else "cpu")
 
     # TODO: Automate dataset creation / adapt paths
-    # # Load training data
-    # train_dataset = get_dataset("train")
-    # # Load validation data
-    # val_dataset = get_dataset("val")
-    #
-    # # Create the dataloader
-    # train_loader = torch.utils.data.DataLoader(
-    #     train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
-    #     collate_fn=collate_remove_none,
-    #     worker_init_fn=worker_init_fn)
+    # Load training data
+    train_dataset = get_dataset("train")
+    # Load validation data
+    val_dataset = get_dataset("test")
+
+
+
+    print(train_dataset.len)
+    # Create the dataloader
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
+        collate_fn=collate_remove_none,
+        worker_init_fn=worker_init_fn)
 
 
 
@@ -54,6 +58,10 @@ if __name__ == '__main__':
 
     # Write to tensorboard
     logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
-
-    while True:
-        epoch_it += 1
+    trainer = Trainer(occ_net, optimizer, device=device)
+    # while True:
+    #     epoch_it += 1
+    for batch in train_loader:
+        print(batch)
+        loss = trainer.train_step(batch)
+        print(loss)

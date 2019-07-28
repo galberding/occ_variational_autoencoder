@@ -61,7 +61,9 @@ class CheckpointIO(object):
         if os.path.exists(filename):
             print(filename)
             print('=> Loading checkpoint from local file...')
-            state_dict = torch.load(filename)
+            # TODO: change when using cuda!
+            is_cuda = (torch.cuda.is_available())
+            state_dict = torch.load(filename, map_location=("cuda" if is_cuda else "cpu"))
             scalars = self.parse_state_dict(state_dict)
             return scalars
         else:
