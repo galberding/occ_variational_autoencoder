@@ -3,7 +3,7 @@ from dataloader.core import VoxelDataset
 # TODO: Find a more clear way to set the path to the dataset!
 
 
-def get_dataset(mode, return_idx=False, dataset_path = "data/dataset/qube/"):
+def get_dataset(mode, return_idx=False, dataset_path = "data/dataset/pen/"):
     ''' Returns the dataset.
 
         Args:

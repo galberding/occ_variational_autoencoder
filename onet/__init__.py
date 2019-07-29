@@ -33,7 +33,7 @@ class OccupancyNetwork(nn.Module):
     '''
 
     def __init__(self, decoder=decoder_dict["simple"], encoder=None, encoder_latent=encoder_latent_dict["advance"], p0_z=None,
-                 device=None, z_dim=2):
+                 device=None, z_dim=2, logger=None):
         super().__init__()
         if p0_z is None:
             p0_z = dist.Normal(
@@ -45,13 +45,15 @@ class OccupancyNetwork(nn.Module):
         self.current_z = 0
         self.current_mean = 0
         self.current_std = 0
-
+        self.logger = logger
+        self.latent_voxel = True
         if encoder_latent is not None:
             if isinstance(encoder_latent, VoxelEncoder):
                 print("Voxel encoder chooosed!")
-                self.latent_voxel = True
+                # self.latent_voxel = True
             else:
-                self.latent_voxel = False
+                # self.latent_voxel = False
+                pass
             self.encoder_latent = encoder_latent(z_dim=z_dim).to(device)
         else:
             self.encoder_latent = None
@@ -95,7 +97,7 @@ class OccupancyNetwork(nn.Module):
             inputs (tensor): conditioning input
         '''
 
-        print("elbo")
+        # print("elbo")
         c = self.encode_inputs(inputs)
         q_z = self.infer_z(p, occ, c, **kwargs)
         z = q_z.rsample()
@@ -149,7 +151,7 @@ class OccupancyNetwork(nn.Module):
             occ (tensor): occupancy values for occ
             c (tensor): latent conditioned code c
         '''
-        print(c)
+        # print(c)
         if self.encoder_latent is not None:
             mean_z, logstd_z = self.encoder_latent(p, occ, c, **kwargs)
             # print("Mean: ",mean_z,"\nstd: ", logstd_z)

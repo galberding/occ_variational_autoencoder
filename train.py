@@ -11,7 +11,7 @@ import os
 
 
 if __name__ == '__main__':
-    batch_size = 1
+    batch_size = 5
     CHECKPOINT_PATH = "model"
     OUT_DIR = "out/pen"
     if not os.path.exists(OUT_DIR):
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Load training data
     train_dataset = get_dataset("train")
     # Load validation data
-    val_dataset = get_dataset("test")
+    test_dataset = get_dataset("test")
 
 
 
@@ -36,10 +36,16 @@ if __name__ == '__main__':
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset, batch_size=10, num_workers=4, shuffle=False,
+        collate_fn=collate_remove_none,
+        worker_init_fn=worker_init_fn)
+
 
 
     # create the model
-    occ_net = OccupancyNetwork(device=device)
+    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
+    occ_net = OccupancyNetwork(device=device, logger=logger)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
     # nparameters = sum(p.numel() for p in occ_net.parameters())
     # print(nparameters)
@@ -57,11 +63,26 @@ if __name__ == '__main__':
     # TODO: Validation scores for the model
 
     # Write to tensorboard
-    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
     trainer = Trainer(occ_net, optimizer, device=device)
-    # while True:
-    #     epoch_it += 1
-    for batch in train_loader:
-        print(batch)
-        loss = trainer.train_step(batch)
-        print(loss)
+    epoch_it = 0
+    # it = 0
+    checkpoint_every = 100
+    eval_network = 100
+    while epoch_it < 1000:
+        epoch_it += 1
+        for batch in train_loader:
+            it += 1
+            # print(batch)
+            loss = trainer.train_step(batch)
+            logger.add_scalar('train/loss', loss, it)
+            print("Epoch: ", epoch_it," Iteration: ", it, " Loss: ",loss)
+            if (checkpoint_every > 0 and (it % checkpoint_every) == 0):
+                print('Saving checkpoint')
+                checkpoint_io.save('model.pt', epoch_it=epoch_it, it=it)
+            if (eval_network > 0 and (it % eval_network) == 0):
+                print("Evaluate network")
+                eval_dict = trainer.evaluate(test_loader)
+                logger.add_scalar('val/loss', eval_dict['loss'],  it)
+                logger.add_scalar('val/rec_error', eval_dict['rec_error'],  it)
+                logger.add_scalar('val/kl-div', eval_dict['kl'],  it)
+                logger.add_scalar('val/iou', eval_dict['iou'],  it)
