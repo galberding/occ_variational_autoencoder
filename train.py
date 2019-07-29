@@ -11,11 +11,12 @@ import os
 
 
 if __name__ == '__main__':
+    current_home = "/media/compute/homes/galberding/occ_variational_autoencoder/"
     batch_size = 5
     CHECKPOINT_PATH = "model"
     OUT_DIR = "out/pen"
-    if not os.path.exists(OUT_DIR):
-        os.makedirs(OUT_DIR)
+    if not os.path.exists(current_home+OUT_DIR):
+        os.makedirs(current_home+OUT_DIR)
 
     # Create torch device for GPU computing
     is_cuda = (torch.cuda.is_available())
@@ -23,9 +24,9 @@ if __name__ == '__main__':
 
     # TODO: Automate dataset creation / adapt paths
     # Load training data
-    train_dataset = get_dataset("train")
+    train_dataset = get_dataset("train",dataset_path=current_home+"data/dataset/pen/")
     # Load validation data
-    test_dataset = get_dataset("test")
+    test_dataset = get_dataset("test",dataset_path=current_home+"data/dataset/pen/")
 
 
 
@@ -44,14 +45,14 @@ if __name__ == '__main__':
 
 
     # create the model
-    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
+    logger = SummaryWriter(os.path.join(current_home+OUT_DIR, 'logs'))
     occ_net = OccupancyNetwork(device=device, logger=logger)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
     # nparameters = sum(p.numel() for p in occ_net.parameters())
     # print(nparameters)
 
     # Restore the model
-    checkpoint_io = CheckpointIO(OUT_DIR, model=occ_net, optimizer=optimizer)
+    checkpoint_io = CheckpointIO(current_home+OUT_DIR, model=occ_net, optimizer=optimizer)
     try:
         load_dict = checkpoint_io.load('model.pt')
     except FileExistsError:
