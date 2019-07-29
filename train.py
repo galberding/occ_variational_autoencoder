@@ -67,9 +67,9 @@ if __name__ == '__main__':
     trainer = Trainer(occ_net, optimizer, device=device)
     # epoch_it = 0
     # it = 0
-    checkpoint_every = 100
-    eval_network = 100
-    while epoch_it < 1000:
+    checkpoint_every = 1000
+    eval_network = 1000
+    while epoch_it < 100000:
         epoch_it += 1
         for batch in train_loader:
             it += 1
