@@ -85,4 +85,4 @@ if __name__ == '__main__':
                 logger.add_scalar('val/loss', eval_dict['loss'],  it)
                 logger.add_scalar('val/rec_error', eval_dict['rec_error'],  it)
                 logger.add_scalar('val/kl-div', eval_dict['kl'],  it)
-                logger.add_scalar('val/iou', eval_dict['iou'],  it)
+                # logger.add_scalar('val/iou', eval_dict['iou'],  it)
