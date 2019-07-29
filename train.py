@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     # Write to tensorboard
     trainer = Trainer(occ_net, optimizer, device=device)
-    epoch_it = 0
+    # epoch_it = 0
     # it = 0
     checkpoint_every = 100
     eval_network = 100
