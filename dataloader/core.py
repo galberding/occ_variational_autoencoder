@@ -26,6 +26,7 @@ class VoxelDataset(data.Dataset):
             # print(files[0])
             self.sample_paths.append(os.path.join(root, files[0]))
         self.len = len(self.sample_paths)
+        self.sample_paths = sorted(self.sample_paths)
 
     def __len__(self):
         ''' Returns the length of the dataset.
@@ -45,6 +46,11 @@ class VoxelDataset(data.Dataset):
         inputs = sample['voxel']
         points_iou_occ = sample['occ']
         points_iou = sample['points']
+        size = sample["size"]
+        ypr = sample["yaw_pitch_roll"]
+        yaw = ypr[0]
+        pitch = ypr[1]
+        roll = ypr[2]
 
         combinded = np.concatenate((points_iou, points_iou_occ[np.newaxis].T), axis=1)
 
@@ -69,6 +75,10 @@ class VoxelDataset(data.Dataset):
             'points_iou': points_iou,
             'points_iou.occ': points_iou_occ,
             'idx': idx,
+            'size': size,
+            'yaw': yaw,
+            'pitch': pitch,
+            'roll': roll
         }
 
         return data
