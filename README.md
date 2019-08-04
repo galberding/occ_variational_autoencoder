@@ -101,11 +101,11 @@ Example:
 python vis_vae.py -m pen -z 3 -v
 ```
 ## Training Data:
-The network is designed to work with voxeldata. It is expected that the trainingpoints consists of one sample.npy file that 
+The network is designed to work with voxeldata. It is expected that the trainingpoints consist of one sample.npy file that 
 contains the following subarray:
 * **points** containing 100000 points sampled from the unit qube
 * **occ** occupancys, telling if the corresponding point is inside the VoxelModel 
 * **voxel** the actual voxeldata 
 * **attr**  only important if using **validate.py** for visualization
 
-The code usage can be found in [core.py](/dataloader/core.py)
+The code usage can be found in [core.py](/dataloader/core.py).
