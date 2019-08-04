@@ -11,12 +11,21 @@ import os
 
 
 if __name__ == '__main__':
-    current_home = "/media/compute/homes/galberding/occ_variational_autoencoder/"
+    current_home = ""
+    # current_home = "/media/compute/homes/galberding/occ_variational_autoencoder/"
     batch_size = 5
-    CHECKPOINT_PATH = "model"
-    OUT_DIR = "out/pen"
-    if not os.path.exists(current_home+OUT_DIR):
-        os.makedirs(current_home+OUT_DIR)
+
+
+    MODEL = "sphere/"
+    OUT_DIR = "out/"
+    dataset_path = "data/dataset/"
+
+    dataset_path =  current_home + dataset_path + MODEL
+    OUT_DIR = current_home + OUT_DIR + MODEL
+
+
+    if not os.path.exists(OUT_DIR+MODEL):
+        os.makedirs(OUT_DIR+MODEL)
 
     # Create torch device for GPU computing
     is_cuda = (torch.cuda.is_available())
@@ -24,9 +33,9 @@ if __name__ == '__main__':
 
     # TODO: Automate dataset creation / adapt paths
     # Load training data
-    train_dataset = get_dataset("train",dataset_path=current_home+"data/dataset/pen/")
+    train_dataset = get_dataset("train",dataset_path=dataset_path)
     # Load validation data
-    test_dataset = get_dataset("test",dataset_path=current_home+"data/dataset/pen/")
+    test_dataset = get_dataset("test",dataset_path=dataset_path)
 
 
 
@@ -45,14 +54,14 @@ if __name__ == '__main__':
 
 
     # create the model
-    logger = SummaryWriter(os.path.join(current_home+OUT_DIR, 'logs'))
-    occ_net = OccupancyNetwork(device=device, logger=logger)
+    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
+    occ_net = OccupancyNetwork(z_dim=3,device=device, logger=logger)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
     # nparameters = sum(p.numel() for p in occ_net.parameters())
     # print(nparameters)
 
     # Restore the model
-    checkpoint_io = CheckpointIO(current_home+OUT_DIR, model=occ_net, optimizer=optimizer)
+    checkpoint_io = CheckpointIO(OUT_DIR, model=occ_net, optimizer=optimizer)
     try:
         load_dict = checkpoint_io.load('model.pt')
     except FileExistsError:
@@ -67,8 +76,8 @@ if __name__ == '__main__':
     trainer = Trainer(occ_net, optimizer, device=device)
     # epoch_it = 0
     # it = 0
-    checkpoint_every = 1000
-    eval_network = 1000
+    checkpoint_every = 100
+    eval_network = 100
     while epoch_it < 100000:
         epoch_it += 1
         for batch in train_loader:

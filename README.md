@@ -32,3 +32,30 @@ The second attempt wasn't this successful. The network was supposed to learn the
 Again the plot shows the different voxelrepresentations of the sphere. Because of a bug spheres with small sizes
 will become cubes which is clearly visible on the left side of the plot. Representations which are round(isch) tend to be grouped 
 close together. 
+
+## Usage
+### Dependencies
+### Train- and Testset Generation:
+```bash
+python create_voxel_data.py [-h] -m <pen|sphere|qube> [-s SAMPLES]
+```
+This will create a train and test set at pwd/data/dataset. 
+
+### Training
+```
+python train.py
+```
+
+### Latent Space Visualization
+```
+python validate.py
+```
+## Training Data:
+The network is designed to work with voxeldata. It is expected that the trainingpoints consists of one sample.npy file that 
+contains the following subarray:
+* **points** containing 100000 points sampled from the unit qube
+* **occ** occupancys, telling if the corresponding point is inside the VoxelModel 
+* **voxel** the actual voxeldata 
+* **attr**  only important if using **validate.py** for visualization
+
+The code usage can be found in [core.py](/dataloader/core.py)
