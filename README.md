@@ -34,7 +34,18 @@ will become cubes which is clearly visible on the left side of the plot. Represe
 close together. 
 
 ## Usage
+### Clone
+Clone the repository with submodule:
+* git version >= 2.13
+    ```
+    git clone --recurse-submodules https://github.com/galberding/occ_variational_autoencoder.git
+    ```
+* git version >= 1.19
+    ```
+    git clone --recursive https://github.com/galberding/occ_variational_autoencoder.git
+    ```
 ### Dependencies
+TODO
 ### Train- and Testset Generation:
 ```bash
 python create_voxel_data.py [-h] -m <pen|sphere|qube> [-s SAMPLES]
@@ -43,12 +54,51 @@ This will create a train and test set at pwd/data/dataset.
 
 ### Training
 ```
-python train.py
+usage: train.py [-h] -m <pen|sphere|qube> [-z Z_DIM] [-i MAX_ITERATIONS]
+                [-c CHECKPOINT] [-e EVAL] [-b BATCH]
+
+Train the network for the given data.
+  -m <pen|sphere|qube>, --model <pen|sphere|qube>
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -z Z_DIM, --z_dim Z_DIM
+                        Set the dimension of the latent space (default: 2)
+  -i MAX_ITERATIONS, --max_iterations MAX_ITERATIONS
+                        Set iterations (default: 10000)
+  -c CHECKPOINT, --checkpoint CHECKPOINT
+                        Set after how many iterations the model should be
+                        saved. (default: 100)
+  -e EVAL, --eval EVAL  Perform the validation every x rounds. (default: 100)
+  -b BATCH, --batch BATCH
+                        Batchsize (default: 5)
 ```
+Example:
+```
+python train.py -m pen -z 3 -c 1000 -e 1000 -b 10
+```
+The current loss, reconstruction error and KL-divergence can be monitored with tensorboard.
+The logfiles as well as the model are stored in **/out/<voxel_model>/**.
 
 ### Latent Space Visualization
+
 ```
-python validate.py
+usage: vis_vae.py [-h] -m <pen|sphere|qube> [-z Z_DIM] [-v]
+
+Visualize latent space of trained model.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m <pen|sphere|qube>, --model <pen|sphere|qube>
+  -z Z_DIM, --z_dim Z_DIM
+                        Set the dimension of the latent space (default: [2])
+  -v, --visualize       if plot should be visualized (default: False)
+
+```
+
+Example:
+```
+python vis_vae.py -m pen -z 3 -v
 ```
 ## Training Data:
 The network is designed to work with voxeldata. It is expected that the trainingpoints consists of one sample.npy file that 

@@ -7,39 +7,57 @@ from checkpoints import CheckpointIO
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 import os
-
-
+import argparse
 
 if __name__ == '__main__':
-    current_home = ""
-    # current_home = "/media/compute/homes/galberding/occ_variational_autoencoder/"
-    batch_size = 5
+
+    parser = argparse.ArgumentParser(description="Train the network for the given data.",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-m", "--model", nargs=1, metavar="<pen|sphere|qube>", required=True, type=str)
+    parser.add_argument("-z", "--z_dim", nargs=1, default=[2], type=int, help="Set the dimension of the latent space")
+    parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set iterations")
+    parser.add_argument("-c", "--checkpoint", nargs=1, default=[100], type=int,
+                        help="Set after how many iterations the model should be saved.")
+    parser.add_argument("-e", "--eval", nargs=1, default=[100], type=int, help="Perform the validation every x rounds.")
+    parser.add_argument("-b", "--batch", nargs=1, default=[5], type=int, help="Batchsize")
+    args = parser.parse_args()
+    current_dir = (os.getcwd())
+    voxel_model = args.model[0]
+    z_dim = args.z_dim[0]
+    max_iterations = args.max_iterations[0]
+    print(max_iterations)
+    batch_size = args.batch[0]
+    checkpoint_every = args.checkpoint[0]
+    eval_network = args.eval[0]
+
+    print(voxel_model)
+    print(z_dim)
 
 
-    MODEL = "sphere/"
-    OUT_DIR = "out/"
-    dataset_path = "data/dataset/"
+    if voxel_model not in ["qube", "sphere", "pen"]:
+        print("Model not known!")
+        exit(0)
 
-    dataset_path =  current_home + dataset_path + MODEL
-    OUT_DIR = current_home + OUT_DIR + MODEL
+    out_path = "out/"
+    data_path = "data/dataset/"
+    model_name = 'model' + '_z_dim_' + str(z_dim) + '.pt'
+    DATASET_PATH = os.path.join(current_dir, data_path, voxel_model, '')
+    print(DATASET_PATH)
+    OUT_DIR = os.path.join(current_dir, out_path, voxel_model, '')
+    print(OUT_DIR)
 
-
-    if not os.path.exists(OUT_DIR+MODEL):
-        os.makedirs(OUT_DIR+MODEL)
+    if not os.path.exists(OUT_DIR):
+        os.makedirs(OUT_DIR)
 
     # Create torch device for GPU computing
     is_cuda = (torch.cuda.is_available())
     device = torch.device("cuda" if is_cuda else "cpu")
 
-    # TODO: Automate dataset creation / adapt paths
     # Load training data
-    train_dataset = get_dataset("train",dataset_path=dataset_path)
+    train_dataset = get_dataset("train", dataset_path=DATASET_PATH)
     # Load validation data
-    test_dataset = get_dataset("test",dataset_path=dataset_path)
+    test_dataset = get_dataset("test", dataset_path=DATASET_PATH)
 
-
-
-    print(train_dataset.len)
     # Create the dataloader
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
@@ -51,19 +69,15 @@ if __name__ == '__main__':
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
-
-
     # create the model
     logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
-    occ_net = OccupancyNetwork(z_dim=3,device=device, logger=logger)
+    occ_net = OccupancyNetwork(z_dim=z_dim, device=device, logger=logger)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
-    # nparameters = sum(p.numel() for p in occ_net.parameters())
-    # print(nparameters)
 
     # Restore the model
     checkpoint_io = CheckpointIO(OUT_DIR, model=occ_net, optimizer=optimizer)
     try:
-        load_dict = checkpoint_io.load('model.pt')
+        load_dict = checkpoint_io.load(model_name)
     except FileExistsError:
         load_dict = dict()
     epoch_it = load_dict.get('epoch_it', -1)
@@ -76,23 +90,22 @@ if __name__ == '__main__':
     trainer = Trainer(occ_net, optimizer, device=device)
     # epoch_it = 0
     # it = 0
-    checkpoint_every = 100
-    eval_network = 100
-    while epoch_it < 100000:
+
+    while epoch_it < max_iterations:
         epoch_it += 1
         for batch in train_loader:
             it += 1
             # print(batch)
             loss = trainer.train_step(batch)
             logger.add_scalar('train/loss', loss, it)
-            print("Epoch: ", epoch_it," Iteration: ", it, " Loss: ",loss)
+            print("Epoch: ", epoch_it, " Iteration: ", it, " Loss: ", loss)
             if (checkpoint_every > 0 and (it % checkpoint_every) == 0):
                 print('Saving checkpoint')
-                checkpoint_io.save('model.pt', epoch_it=epoch_it, it=it)
+                checkpoint_io.save(model_name, epoch_it=epoch_it, it=it)
             if (eval_network > 0 and (it % eval_network) == 0):
                 print("Evaluate network")
                 eval_dict = trainer.evaluate(test_loader)
-                logger.add_scalar('val/loss', eval_dict['loss'],  it)
-                logger.add_scalar('val/rec_error', eval_dict['rec_error'],  it)
-                logger.add_scalar('val/kl-div', eval_dict['kl'],  it)
+                logger.add_scalar('val/loss', eval_dict['loss'], it)
+                logger.add_scalar('val/rec_error', eval_dict['rec_error'], it)
+                logger.add_scalar('val/kl-div', eval_dict['kl'], it)
                 # logger.add_scalar('val/iou', eval_dict['iou'],  it)
