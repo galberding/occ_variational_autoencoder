@@ -23,5 +23,5 @@ if __name__ == '__main__':
         exit(0)
     path = (os.path.join(current_dir, dataset_path, voxel_model, ''))
     print("pass!")
-    exit(1)
+    # exit(1)
     gen_dataset(voxel_model, path, samples)
