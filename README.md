@@ -65,7 +65,7 @@ optional arguments:
   -z Z_DIM, --z_dim Z_DIM
                         Set the dimension of the latent space (default: 2)
   -i MAX_ITERATIONS, --max_iterations MAX_ITERATIONS
-                        Set iterations (default: 10000)
+                        Set max epoch iteration (default: 10000)
   -c CHECKPOINT, --checkpoint CHECKPOINT
                         Set after how many iterations the model should be
                         saved. (default: 100)

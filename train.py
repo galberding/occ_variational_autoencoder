@@ -15,7 +15,7 @@ if __name__ == '__main__':
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-m", "--model", nargs=1, metavar="<pen|sphere|qube>", required=True, type=str)
     parser.add_argument("-z", "--z_dim", nargs=1, default=[2], type=int, help="Set the dimension of the latent space")
-    parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set iterations")
+    parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set max epoch iteration")
     parser.add_argument("-c", "--checkpoint", nargs=1, default=[100], type=int,
                         help="Set after how many iterations the model should be saved.")
     parser.add_argument("-e", "--eval", nargs=1, default=[100], type=int, help="Perform the validation every x rounds.")
