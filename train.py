@@ -101,7 +101,7 @@ if __name__ == '__main__':
             it += 1
             # print(batch)
             loss = trainer.train_step(batch)
-            logger.add_scalar('train/loss', loss, it)
+            logger.add_scalar(voxel_model+'/'+'train/loss', loss, it)
             print("Epoch: ", epoch_it, " Iteration: ", it, " Loss: ", loss)
             if (checkpoint_every > 0 and (it % checkpoint_every) == 0):
                 print('Saving checkpoint')
@@ -109,7 +109,7 @@ if __name__ == '__main__':
             if (eval_network > 0 and (it % eval_network) == 0):
                 print("Evaluate network")
                 eval_dict = trainer.evaluate(test_loader)
-                logger.add_scalar('val/loss', eval_dict['loss'], it)
-                logger.add_scalar('val/rec_error', eval_dict['rec_error'], it)
-                logger.add_scalar('val/kl-div', eval_dict['kl'], it)
+                logger.add_scalar(voxel_model+'/'+'val/loss', eval_dict['loss'], it)
+                logger.add_scalar(voxel_model+'/'+'val/rec_error', eval_dict['rec_error'], it)
+                logger.add_scalar(voxel_model+'/'+'val/kl-div', eval_dict['kl'], it)
                 # logger.add_scalar('val/iou', eval_dict['iou'],  it)
