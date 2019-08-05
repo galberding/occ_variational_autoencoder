@@ -122,8 +122,10 @@ class VoxelEncoder(nn.Module):
 
         self.conv_0 = nn.Conv3d(16, 64, 3, padding=1, stride=2)
         self.conv_1 = nn.Conv3d(64, 128, 3, padding=1, stride=2)
+        self.dropout3d = nn.Dropout3d(p=0.2)
         self.conv_2 = nn.Conv3d(128, 256, 3, padding=1, stride=2)
         self.conv_3 = nn.Conv3d(256, 200, 3, padding=1, stride=2)
+        self.dropout = nn.Dropout(0.5)
         self.fc = nn.Linear(200 , 128)
         self.actvn = F.relu
         # self.fc = nn.Linear(128, z_dim)
@@ -141,12 +143,14 @@ class VoxelEncoder(nn.Module):
         # net = self.conv_in2(c)
         net = self.conv_0(self.actvn(net))
         net = self.conv_1(self.actvn(net))
+        net = self.dropout3d(net)
         net = self.conv_2(self.actvn(net))
         net = self.conv_3(self.actvn(net))
         # print("Shape: ", net.shape)
         hidden = net.view(batch_size, 200)
         c_out = self.fc((hidden))
         c_out = self.actvn(c_out)
+        c_out = self.dropout(c_out)
         mean = self.fc_mean(c_out)
         logstd = self.fc_logstd(c_out)
 
