@@ -20,8 +20,12 @@ if __name__ == '__main__':
                         help="Set after how many iterations the model should be saved.")
     parser.add_argument("-e", "--eval", nargs=1, default=[100], type=int, help="Perform the validation every x rounds.")
     parser.add_argument("-b", "--batch", nargs=1, default=[5], type=int, help="Batchsize")
+    parser.add_argument("-p", "--path", nargs=1, default=[''], type=str, help="Specify the absolute project path, if not set the current working directory will be choosed")
     args = parser.parse_args()
-    current_dir = (os.getcwd())
+
+    current_dir = args.path[0]
+    if not current_dir:
+        current_dir = os.getcwd()
     voxel_model = args.model[0]
     z_dim = args.z_dim[0]
     max_iterations = args.max_iterations[0]

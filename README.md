@@ -72,6 +72,8 @@ optional arguments:
   -e EVAL, --eval EVAL  Perform the validation every x rounds. (default: 100)
   -b BATCH, --batch BATCH
                         Batchsize (default: 5)
+  -p PATH, --path PATH  Specify the absolute project path, if not set the
+                        current working directory will be choosed
 ```
 Example:
 ```
