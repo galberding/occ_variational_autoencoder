@@ -18,7 +18,7 @@ def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
     axes[0, 1].set_aspect('equal')
     axes[1, 0].set_aspect('equal')
     axes[1, 1].set_aspect('equal')
-    voxel = np.array(voxel, dtype=np.float)
+    voxel = np.array(voxel.cpu(), dtype=np.float)
     axes[0, 0].voxels(voxel, edgecolor="k")
     axes[0, 1].voxels(voxel_pred, edgecolor="k")
     axes[1, 0].scatter(cloud[:, 0], cloud[:, 1], cloud[:, 2])
