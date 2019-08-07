@@ -8,6 +8,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 import os
 import argparse
+import numpy as np
 
 if __name__ == '__main__':
 
@@ -20,7 +21,9 @@ if __name__ == '__main__':
                         help="Set after how many iterations the model should be saved.")
     parser.add_argument("-e", "--eval", nargs=1, default=[100], type=int, help="Perform the validation every x rounds.")
     parser.add_argument("-b", "--batch", nargs=1, default=[5], type=int, help="Batchsize")
-    parser.add_argument("-p", "--path", nargs=1, default=[''], type=str, help="Specify the absolute project path, if not set the current working directory will be choosed")
+    parser.add_argument("-p", "--path", nargs=1, default=[''], type=str,
+                        help="Specify the absolute project path, if not set the current working directory will be choosed")
+    parser.add_argument("-v", "--vis", nargs=1, default=[50], type=int, help="visualize after x iterations")
     args = parser.parse_args()
 
     current_dir = args.path[0]
@@ -33,10 +36,10 @@ if __name__ == '__main__':
     batch_size = args.batch[0]
     checkpoint_every = args.checkpoint[0]
     eval_network = args.eval[0]
+    vis = args.vis[0]
 
     print(voxel_model)
     print(z_dim)
-
 
     if voxel_model not in ["qube", "sphere", "pen"]:
         print("Model not known!")
@@ -69,7 +72,7 @@ if __name__ == '__main__':
         worker_init_fn=worker_init_fn)
 
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=10, num_workers=4, shuffle=False,
+        test_dataset, batch_size=1, num_workers=4, shuffle=False,
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
@@ -94,14 +97,14 @@ if __name__ == '__main__':
     trainer = Trainer(occ_net, optimizer, device=device)
     # epoch_it = 0
     # it = 0
-
+    vis = 50
     while epoch_it < max_iterations:
         epoch_it += 1
         for batch in train_loader:
             it += 1
             # print(batch)
             loss = trainer.train_step(batch)
-            logger.add_scalar(voxel_model+'/'+'train/loss', loss, it)
+            logger.add_scalar(voxel_model + '/' + 'train/loss', loss, it)
             print("Epoch: ", epoch_it, " Iteration: ", it, " Loss: ", loss)
             if (checkpoint_every > 0 and (it % checkpoint_every) == 0):
                 print('Saving checkpoint')
@@ -109,7 +112,13 @@ if __name__ == '__main__':
             if (eval_network > 0 and (it % eval_network) == 0):
                 print("Evaluate network")
                 eval_dict = trainer.evaluate(test_loader)
-                logger.add_scalar(voxel_model+'/'+'val/loss', eval_dict['loss'], it)
-                logger.add_scalar(voxel_model+'/'+'val/rec_error', eval_dict['rec_error'], it)
-                logger.add_scalar(voxel_model+'/'+'val/kl-div', eval_dict['kl'], it)
-                # logger.add_scalar('val/iou', eval_dict['iou'],  it)
+                logger.add_scalar(voxel_model + '/' + 'val/loss', (eval_dict['loss']), it)
+                logger.add_scalar(voxel_model + '/' + 'val/rec_error', (eval_dict['rec_error']), it)
+                logger.add_scalar(voxel_model + '/' + 'val/kl-div', (eval_dict['kl']), it)
+                logger.add_scalar('val/iou', (eval_dict['iou']), it)
+
+                # logger.a
+            if (it % vis == 0):
+                figs = trainer.visualize(test_loader)
+                for i, fig in enumerate(figs):
+                    logger.add_figure('val/reconstruction/'+str(i), fig, it)

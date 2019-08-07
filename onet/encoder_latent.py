@@ -22,6 +22,7 @@ class Encoder(nn.Module):
         dim (int): input dimension
         leaky (bool): whether to use leaky ReLUs
     '''
+
     def __init__(self, z_dim=128, c_dim=128, dim=3, leaky=False):
         super().__init__()
         self.z_dim = z_dim
@@ -83,7 +84,6 @@ class Encoder(nn.Module):
         mean = self.fc_mean(net)
         logstd = self.fc_logstd(net)
 
-
         # print("Forward is called -----------", mean, logstd)
         return mean, logstd
 
@@ -101,38 +101,28 @@ class VoxelEncoder(nn.Module):
         dim (int): input dimension
         leaky (bool): whether to use leaky ReLUs
     '''
-    def __init__(self, z_dim=128, c_dim=128, dim=3, leaky=False):
+
+    def __init__(self, z_dim=128, c_dim=0, dim=3, leaky=False, p=0.2):
         super().__init__()
         self.z_dim = z_dim
         self.c_dim = c_dim
+        self.p = p
 
         # Submodules
-        # self.fc_pos = nn.Linear(dim, 128)
-
-        # if c_dim != 0:
-        #     self.fc_c = nn.Linear(c_dim, 128)
-
-        # self.fc_0 = nn.Linear(1, 128)
-        # self.fc_1 = nn.Linear(128, 128)
-        # self.fc_2 = nn.Linear(256, 128)
-        # self.fc_3 = nn.Linear(256, 128)
 
         self.conv_in = nn.Conv3d(1, 16, 3, padding=1)
-        # self.conv_in2 = nn.Conv3d(16, 32, 3, padding=1)
-
         self.conv_0 = nn.Conv3d(16, 64, 3, padding=1, stride=2)
         self.conv_1 = nn.Conv3d(64, 128, 3, padding=1, stride=2)
-        self.dropout3d = nn.Dropout3d(p=0.2)
         self.conv_2 = nn.Conv3d(128, 256, 3, padding=1, stride=2)
         self.conv_3 = nn.Conv3d(256, 200, 3, padding=1, stride=2)
-        self.dropout = nn.Dropout(0.5)
-        self.fc = nn.Linear(200 , 128)
+        self.pooling = nn.MaxPool3d(2, stride=2)
+        self.fc = nn.Linear(200, 50)
         self.actvn = F.relu
-        # self.fc = nn.Linear(128, z_dim)
-        self.fc_mean = nn.Linear(128, z_dim)
-        self.fc_logstd = nn.Linear(128, z_dim)
+        self.fc_mean = nn.Linear(50, z_dim)
+        self.fc_logstd = nn.Linear(50, z_dim)
 
-
+        self.dropout3d = nn.Dropout3d(p=self.p)
+        self.dropout = nn.Dropout(p=self.p)
 
     def forward(self, p, x, c=None, **kwargs):
         batch_size = c.size(0)
@@ -141,19 +131,23 @@ class VoxelEncoder(nn.Module):
         # print(c)
         net = self.conv_in(c)
         # net = self.conv_in2(c)
+        net = self.dropout3d(net)
         net = self.conv_0(self.actvn(net))
+        net = self.dropout3d(net)
         net = self.conv_1(self.actvn(net))
         net = self.dropout3d(net)
         net = self.conv_2(self.actvn(net))
+        net = self.dropout3d(net)
         net = self.conv_3(self.actvn(net))
+        net = self.dropout3d(net)
+        net = self.pooling(net)
         # print("Shape: ", net.shape)
         hidden = net.view(batch_size, 200)
         c_out = self.fc((hidden))
+        c_out = self.dropout(c_out)
         c_out = self.actvn(c_out)
         c_out = self.dropout(c_out)
         mean = self.fc_mean(c_out)
         logstd = self.fc_logstd(c_out)
 
-
-        # print("Forward is called -----------", mean, logstd)
         return mean, logstd

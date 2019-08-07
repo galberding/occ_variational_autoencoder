@@ -6,7 +6,28 @@ from metrics import make_3d_grid, compute_iou
 from torch.nn import functional as F
 import os
 from torch import distributions as dist
+from VoxelView.main import cloud2voxel
+import matplotlib.pyplot as plt
+import io
 
+
+def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
+    """Create a pyplot plot and save to buffer."""
+    fig, axes = plt.subplots(2, 2, subplot_kw=dict(projection='3d'), figsize=(10, 10))
+    axes[0, 0].set_aspect('equal')
+    axes[0, 1].set_aspect('equal')
+    axes[1, 0].set_aspect('equal')
+    axes[1, 1].set_aspect('equal')
+    voxel = np.array(voxel, dtype=np.float)
+    axes[0, 0].voxels(voxel, edgecolor="k")
+    axes[0, 1].voxels(voxel_pred, edgecolor="k")
+    axes[1, 0].scatter(cloud[:, 0], cloud[:, 1], cloud[:, 2])
+    axes[1, 1].scatter(cloud_pred[:, 0], cloud_pred[:, 1], cloud_pred[:, 2])
+    # plt.show()
+    # buf = io.BytesIO()
+    # plt.savefig(buf, format='png')
+    # buf.seek(0)
+    return fig
 
 class BaseTrainer(object):
     ''' Base trainer class.
@@ -38,11 +59,15 @@ class BaseTrainer(object):
         '''
         raise NotImplementedError
 
-    def visualize(self, *args, **kwargs):
+    def visualize(self, val_loader):
         ''' Performs  visualization.
         '''
-        raise NotImplementedError
+        eval_list = list()
 
+        for data in tqdm(val_loader):
+            eval_fig = self.vis(data)
+            eval_list.append(eval_fig)
+        return eval_list
 
 class Trainer(BaseTrainer):
     ''' Trainer object for the Occupancy Network.
@@ -59,7 +84,7 @@ class Trainer(BaseTrainer):
     '''
 
     def __init__(self, model, optimizer, device=None, input_type='img',
-                 vis_dir=None, threshold=0.5, eval_sample=False):
+                 vis_dir=None, threshold=0.1, eval_sample=False):
         self.model = model
         self.optimizer = optimizer
         self.device = device
@@ -119,14 +144,28 @@ class Trainer(BaseTrainer):
         # # Compute iou
         # batch_size = points.size(0)
         #
-        # with torch.no_grad():
-        #     p_out = self.model(points_iou, inputs,
-        #                        sample=self.eval_sample, **kwargs)
+        with torch.no_grad():
+            p_out = self.model(points_iou, inputs,
+                               sample=self.eval_sample, **kwargs)
+        # print(p_out.probs.shape)
+        # print(p_out.probs.min())
+        occ_iou_np = (occ_iou >= 0.5).cpu().numpy()
+        occ_iou_hat_np = (p_out.probs >= threshold).cpu().numpy()
+        iou = compute_iou(occ_iou_np, occ_iou_hat_np).mean()
+        eval_dict['iou'] = iou
+        # print(occ_iou_hat_np)
+        # print(points_iou.numpy()[0])
+        # pred_points = (points_iou.numpy()[0][occ_iou_hat_np[0] == 1])
+        # voxel_pred = cloud2voxel(pred_points,1,32)
         #
-        # occ_iou_np = (occ_iou >= 0.5).cpu().numpy()
-        # occ_iou_hat_np = (p_out.probs >= threshold).cpu().numpy()
-        # iou = compute_iou(occ_iou_np, occ_iou_hat_np).mean()
-        # eval_dict['iou'] = iou
+        # # print(inputs.shape)
+        # print(occ_iou[0].shape)
+        # occ_iou = occ_iou.numpy()[0]
+        # org_points = points_iou.numpy()[0]
+        # print("Org: ",org_points[occ_iou == 1].shape)
+        # plot_buf = gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
+        # eval_dict['img_buf'] = plot_buf
+
         #
         # # Estimate voxel iou
         # if voxels_occ is not None:
@@ -148,34 +187,40 @@ class Trainer(BaseTrainer):
 
         return eval_dict
 
-    # def visualize(self, data):
-    #     ''' Performs a visualization step for the data.
-    #
-    #     Args:
-    #         data (dict): data dictionary
-    #     '''
-    #     device = self.device
-    #
-    #     batch_size = data['points'].size(0)
-    #     inputs = data.get('inputs', torch.empty(batch_size, 0)).to(device)
-    #
-    #     shape = (32, 32, 32)
-    #     p = make_3d_grid([-0.5] * 3, [0.5] * 3, shape).to(device)
-    #     p = p.expand(batch_size, *p.size())
-    #
-    #     kwargs = {}
-    #     with torch.no_grad():
-    #         p_r = self.model(p, inputs, sample=self.eval_sample, **kwargs)
-    #
-    #     occ_hat = p_r.probs.view(batch_size, *shape)
-    #     voxels_out = (occ_hat >= self.threshold).cpu().numpy()
-    #
-    #     for i in trange(batch_size):
-    #         input_img_path = os.path.join(self.vis_dir, '%03d_in.png' % i)
-    #         vis.visualize_data(
-    #             inputs[i].cpu(), self.input_type, input_img_path)
-    #         vis.visualize_voxels(
-    #             voxels_out[i], os.path.join(self.vis_dir, '%03d.png' % i))
+    def vis(self, data, samples=1):
+        ''' Performs a visualization step for the data.
+
+        Args:
+            data (dict): data dictionary
+        '''
+        device = self.device
+        threshold = self.threshold
+        self.model.eval()
+        kwargs = {}
+
+        points = data.get('points').to(device)
+        occ = data.get('points.occ').to(device)
+
+        inputs = data.get('inputs', torch.empty(points.size(0), 0)).to(device)
+        voxels_occ = data.get('voxels')
+
+        points_iou = data.get('points_iou').to(device)
+        occ_iou = data.get('points_iou.occ').to(device)
+
+        with torch.no_grad():
+            p_out = self.model(points_iou, inputs,
+                               sample=self.eval_sample, **kwargs)
+        occ_iou_hat_np = (p_out.probs >= threshold).cpu().numpy()
+        pred_points = (points_iou.numpy()[0][occ_iou_hat_np[0] == 1])
+        voxel_pred = cloud2voxel(pred_points,1,32)
+
+        # print(inputs.shape)
+        print(occ_iou[0].shape)
+        occ_iou = occ_iou.numpy()[0]
+        org_points = points_iou.numpy()[0]
+        print("Org: ",org_points[occ_iou == 1].shape)
+        return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
+
 
     def compute_loss(self, data):
         ''' Computes the loss.

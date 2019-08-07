@@ -4,6 +4,7 @@ from torch import distributions as dist
 from onet import encoder_latent, decoder
 from onet.encoder_latent import VoxelEncoder, Encoder
 from scipy.stats import norm
+
 # Encoder latent dictionary
 encoder_latent_dict = {
     'simple': encoder_latent.Encoder,
@@ -32,7 +33,8 @@ class OccupancyNetwork(nn.Module):
         device (device): torch device
     '''
 
-    def __init__(self, decoder=decoder_dict["simple"], encoder=None, encoder_latent=encoder_latent_dict["advance"], p0_z=None,
+    def __init__(self, decoder=decoder_dict["simple"], encoder=None, encoder_latent=encoder_latent_dict["advance"],
+                 p0_z=None,
                  device=None, z_dim=2, logger=None):
         super().__init__()
         if p0_z is None:
@@ -40,7 +42,7 @@ class OccupancyNetwork(nn.Module):
                 torch.zeros(z_dim, device=device),
                 torch.ones(z_dim, device=device)
             )
-
+        # torch.manual_seed(0)
         self.decoder = decoder(z_dim=z_dim).to(device)
         self.current_z = 0
         self.current_mean = 0
@@ -68,7 +70,6 @@ class OccupancyNetwork(nn.Module):
         self.counter = -5.0
         self.dim = 0
 
-
     def forward(self, p, inputs, sample=True, **kwargs):
         ''' Performs a forward pass through the network.
 
@@ -83,7 +84,6 @@ class OccupancyNetwork(nn.Module):
         self.current_z = z
 
         # print("Sample z ")
-
 
         p_r = self.decode(p, z, c, **kwargs)
         return p_r

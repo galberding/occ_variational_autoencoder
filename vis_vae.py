@@ -12,6 +12,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.cm as cm
 from sklearn.manifold import TSNE
 import argparse
+from sklearn.decomposition import PCA
 
 
 def set_subplot_colormap(axes, samples, attr, cmap="hot_r", title="Title", xlable="X", ylable="Y"):
@@ -19,11 +20,12 @@ def set_subplot_colormap(axes, samples, attr, cmap="hot_r", title="Title", xlabl
     axes.set_title(title)
     axes.set_xlabel(xlable)
     axes.set_ylabel(ylable)
-    scatter = axes.scatter(samples[:, 0], samples[:, 1], cmap=cm.get_cmap(cmap), c=attr)
+    scatter = axes.scatter(samples[:, 0], samples[:, 1], cmap=cm.get_cmap(cmap), c=attr, s=30)
     plt.colorbar(scatter, ax=axes)
 
 
 if __name__ == '__main__':
+
 
     parser = argparse.ArgumentParser(description="Visualize latent space of trained model.",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -67,8 +69,9 @@ if __name__ == '__main__':
         load_dict = dict()
     epoch_it = load_dict.get('epoch_it', -1)
     it = load_dict.get('it', -1)
+    occ_net.eval()
 
-    test_dataset = get_dataset("test", dataset_path=DATASET_PATH)
+    test_dataset = get_dataset("train", dataset_path=DATASET_PATH)
 
     # Create the dataloader
     test_loader = torch.utils.data.DataLoader(
@@ -96,20 +99,26 @@ if __name__ == '__main__':
 
     # Check if samples are high dimensional, if so, project them to 2-dims:
     if z_dim > 2:
-        samples = TSNE(n_components=2).fit_transform(samples)
+        samples_pca = PCA(n_components=2).fit_transform(samples)
+        samples_tsne = TSNE(n_components=2).fit_transform(samples)
     elif z_dim == 1:
         print("Unsupported dim of latent space!")
         exit(0)
 
-    samples = TSNE(n_components=2).fit_transform(samples)
-    print(samples.shape)
+    # samples = TSNE(n_components=2).fit_transform(samples)
+    # print(samples.shape)
 
-    fig, axes = plt.subplots(2, 2, figsize=(20, 20))
-    set_subplot_colormap(axes[0, 0], samples, sizes, title="Sizes", cmap="summer_r")
-    set_subplot_colormap(axes[0, 1], samples, yaw, title="Yaw", cmap="bwr")
-    set_subplot_colormap(axes[1, 0], samples, pitch, title="Pitch", cmap="bwr")
-    set_subplot_colormap(axes[1, 1], samples, roll, title="Roll", cmap="bwr")
-    fig.savefig(os.path.join(PLOT_DIR, "lat_vis_{}_it_{}_dim_{}.pdf".format(voxel_model, it, z_dim)))
+    fig, axes = plt.subplots(2, 4, figsize=(65, 30))
+    set_subplot_colormap(axes[0, 0], samples_pca, sizes, title="Sizes", cmap="summer_r")
+    set_subplot_colormap(axes[0, 1], samples_pca, yaw, title="Yaw", cmap="bwr")
+    set_subplot_colormap(axes[0, 2], samples_pca, pitch, title="Pitch", cmap="bwr")
+    set_subplot_colormap(axes[0, 3], samples_pca, roll, title="Roll", cmap="bwr")
+
+    set_subplot_colormap(axes[1, 0], samples_tsne, sizes, title="Sizes", cmap="summer_r")
+    set_subplot_colormap(axes[1, 1], samples_tsne, yaw, title="Yaw", cmap="bwr")
+    set_subplot_colormap(axes[1, 2], samples_tsne, pitch, title="Pitch", cmap="bwr")
+    set_subplot_colormap(axes[1, 3], samples_tsne, roll, title="Roll", cmap="bwr")
+    fig.savefig(os.path.join(PLOT_DIR, "lat_vis_{}_it_{}_dim_{}.pdf".format(voxel_model, it, z_dim)), bbox_inches='tight')
 
     if args.visualize:
         plt.show()

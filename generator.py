@@ -13,7 +13,12 @@ import matplotlib.cm as cm
 from sklearn.manifold import TSNE
 import argparse
 from scipy.spatial import Delaunay
-
+from metrics import make_3d_grid
+import numpy as np
+import matplotlib
+# matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def gen_points(cloud, samples):
     '''
@@ -23,7 +28,7 @@ def gen_points(cloud, samples):
     :param samples: amount of points to generate
     :return: Tupel of: [0] points, [1] occ
     '''
-    points = np.random.uniform([-1, -1, -1], [1, 1, 1], (samples, 3))
+    # points = np.random.uniform([-1, -1, -1], [1, 1, 1], (samples, 3))
 
     if not isinstance(cloud, Delaunay):
         hull = Delaunay(cloud)
@@ -41,7 +46,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Visualize latent space of trained model.",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-m", "--model", nargs=1, metavar="<pen|sphere|qube>", required=True, type=str)
+    parser.add_argument("-m", "--model", nargs=1, metavar="<pen|sphere|qube>", default=["pen"], required=False, type=str)
     parser.add_argument("-z", "--z_dim", nargs=1, default=[2], type=int, help="Set the dimension of the latent space")
     parser.add_argument("-v", "--visualize", action='store_true', help="if plot should be visualized")
     args = parser.parse_args()
@@ -90,4 +95,10 @@ if __name__ == '__main__':
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
+    grid = make_3d_grid((-1,-1.5,0), (1.5,1.5,0),(10, 10, 1))
+    print(grid.shape)
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
 
+    ax.scatter(grid.numpy()[:,0], grid.numpy()[:,1], grid.numpy()[:,0])
+    plt.show()

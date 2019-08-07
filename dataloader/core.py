@@ -51,7 +51,6 @@ class VoxelDataset(data.Dataset):
         yaw = ypr[0]
         pitch = ypr[1]
         roll = ypr[2]
-
         combinded = np.concatenate((points_iou, points_iou_occ[np.newaxis].T), axis=1)
 
         batch_samples = np.random.choice(combinded.shape[0], 2028)
