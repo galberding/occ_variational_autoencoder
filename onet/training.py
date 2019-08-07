@@ -211,13 +211,13 @@ class Trainer(BaseTrainer):
             p_out = self.model(points_iou, inputs,
                                sample=self.eval_sample, **kwargs)
         occ_iou_hat_np = (p_out.probs >= threshold).cpu().numpy()
-        pred_points = (points_iou.numpy()[0][occ_iou_hat_np[0] == 1])
+        pred_points = (points_iou.cpu().numpy()[0][occ_iou_hat_np[0] == 1])
         voxel_pred = cloud2voxel(pred_points,1,32)
 
         # print(inputs.shape)
         # print(occ_iou[0].shape)
-        occ_iou = occ_iou.numpy()[0]
-        org_points = points_iou.numpy()[0]
+        occ_iou = occ_iou.cpu().numpy()[0]
+        org_points = points_iou.cpu().numpy()[0]
         # print("Org: ",org_points[occ_iou == 1].shape)
         return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
 
