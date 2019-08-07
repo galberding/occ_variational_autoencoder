@@ -215,10 +215,10 @@ class Trainer(BaseTrainer):
         voxel_pred = cloud2voxel(pred_points,1,32)
 
         # print(inputs.shape)
-        print(occ_iou[0].shape)
+        # print(occ_iou[0].shape)
         occ_iou = occ_iou.numpy()[0]
         org_points = points_iou.numpy()[0]
-        print("Org: ",org_points[occ_iou == 1].shape)
+        # print("Org: ",org_points[occ_iou == 1].shape)
         return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
 
 
