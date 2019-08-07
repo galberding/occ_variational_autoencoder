@@ -97,7 +97,7 @@ if __name__ == '__main__':
     trainer = Trainer(occ_net, optimizer, device=device)
     # epoch_it = 0
     # it = 0
-    vis = 50
+    # vis = 50
     while epoch_it < max_iterations:
         epoch_it += 1
         for batch in train_loader:
