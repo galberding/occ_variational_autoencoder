@@ -146,7 +146,7 @@ class VoxelEncoder(nn.Module):
         # net = self.conv_1(self.actvn(net))
         # net = self.conv_2(self.actvn(net))
         net = self.convolution(c)
-        print("Shape: ", net.shape)
+        # print("Shape: ", net.shape)
         hidden = net.view(batch_size, 21952)
         # c_out = self.fc((hidden))
         # c_out = self.actvn(c_out)
