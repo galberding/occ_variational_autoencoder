@@ -235,15 +235,15 @@ class Trainer(BaseTrainer):
 
         kwargs = {}
 
-        c = (inputs)
-        q_z = self.model.infer_z(p, occ, c, **kwargs)
+        # c = self.model.encode_inputs(inputs)
+        q_z = self.model.infer_z(p, occ, inputs, **kwargs)
         # print("Point: ", p.size()," Occupancy: ", occ[0])
         z = q_z.rsample()
 
         # KL-divergence
         kl = dist.kl_divergence(q_z, self.model.p0_z).sum(dim=-1)
         loss = kl.mean()
-
+        c = torch.empty(128, 0)
         # General points
         logits = self.model.decode(p, z, c, **kwargs).logits
         loss_i = F.binary_cross_entropy_with_logits(

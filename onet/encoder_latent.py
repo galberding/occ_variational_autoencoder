@@ -110,16 +110,27 @@ class VoxelEncoder(nn.Module):
 
         # Submodules
 
-        self.conv_in = nn.Conv3d(1, 16, 3, padding=1)
-        self.conv_0 = nn.Conv3d(16, 64, 3, padding=1, stride=2)
-        self.conv_1 = nn.Conv3d(64, 128, 3, padding=1, stride=2)
-        self.conv_2 = nn.Conv3d(128, 256, 3, padding=1, stride=2)
-        self.conv_3 = nn.Conv3d(256, 200, 3, padding=1, stride=2)
-        self.pooling = nn.MaxPool3d(2, stride=2)
+        self.convolution = nn.Sequential(
+            nn.Conv3d(1, 8, 3), #30x30x30
+            nn.BatchNorm3d(8),
+            nn.Conv3d(8, 16, 3, stride=2, padding=1),
+            nn.BatchNorm3d(16),
+            nn.Conv3d(16, 32, 3, padding=0, stride=1),
+            nn.BatchNorm3d(32),
+            nn.Conv3d(32, 64, 3, padding=1, stride=2),
+            nn.BatchNorm3d(64)
+        )
+
+        self.conv_in = nn.Conv3d(1, 8, 3) # 30x30x30
+        self.conv_0 = nn.Conv3d(1, 8, 3) # 15x15x15
+        self.conv_1 = nn.Conv3d(16, 32, 3, stride=1) # 13x13x13
+        self.conv_2 = nn.Conv3d(32, 64, 3, padding=1, stride=2) #7x7x7
         self.fc = nn.Linear(200, 50)
         self.actvn = F.relu
-        self.fc_mean = nn.Linear(50, z_dim)
-        self.fc_logstd = nn.Linear(50, z_dim)
+        self.fc_mean = nn.Linear(21952, z_dim)
+        self.fc_logstd = nn.Linear(21952, z_dim)
+        self.mean_norm = nn.BatchNorm1d(z_dim)
+        self.std_norm = nn.BatchNorm1d(z_dim)
 
         self.dropout3d = nn.Dropout3d(p=self.p)
         self.dropout = nn.Dropout(p=self.p)
@@ -129,25 +140,20 @@ class VoxelEncoder(nn.Module):
 
         c = c.unsqueeze(1)
         # print(c)
-        net = self.conv_in(c)
-        # net = self.conv_in2(c)
-        net = self.dropout3d(net)
-        net = self.conv_0(self.actvn(net))
-        net = self.dropout3d(net)
-        net = self.conv_1(self.actvn(net))
-        net = self.dropout3d(net)
-        net = self.conv_2(self.actvn(net))
-        net = self.dropout3d(net)
-        net = self.conv_3(self.actvn(net))
-        net = self.dropout3d(net)
-        net = self.pooling(net)
-        # print("Shape: ", net.shape)
-        hidden = net.view(batch_size, 200)
-        c_out = self.fc((hidden))
-        c_out = self.dropout(c_out)
-        c_out = self.actvn(c_out)
-        c_out = self.dropout(c_out)
-        mean = self.fc_mean(c_out)
-        logstd = self.fc_logstd(c_out)
+        # net = self.conv_in(c)
+        # # net = self.conv_in2(c)
+        # net = self.conv_0(self.actvn(net))
+        # net = self.conv_1(self.actvn(net))
+        # net = self.conv_2(self.actvn(net))
+        net = self.convolution(c)
+        print("Shape: ", net.shape)
+        hidden = net.view(batch_size, 21952)
+        # c_out = self.fc((hidden))
+        # c_out = self.actvn(c_out)
+        mean = self.fc_mean(self.actvn(hidden))
+        logstd = self.fc_logstd(self.actvn(hidden))
+
+        # mean = self.mean_norm(mean)
+        # logstd = self.std_norm(logstd)
 
         return mean, logstd

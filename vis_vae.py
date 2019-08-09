@@ -108,7 +108,7 @@ if __name__ == '__main__':
     # samples = TSNE(n_components=2).fit_transform(samples)
     # print(samples.shape)
 
-    fig, axes = plt.subplots(2, 4, figsize=(65, 30))
+    fig, axes = plt.subplots(2, 4, figsize=(20, 20))
     set_subplot_colormap(axes[0, 0], samples_pca, sizes, title="Sizes", cmap="summer_r")
     set_subplot_colormap(axes[0, 1], samples_pca, yaw, title="Yaw", cmap="bwr")
     set_subplot_colormap(axes[0, 2], samples_pca, pitch, title="Pitch", cmap="bwr")

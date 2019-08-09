@@ -20,7 +20,6 @@ decoder_dict = {
     'cbatchnorm_noresnet': decoder.DecoderCBatchNormNoResnet,
 }
 
-
 class OccupancyNetwork(nn.Module):
     ''' Occupancy Network class.
     As default the network will use the Voxel encoder combined with the simple decoder.
@@ -33,7 +32,7 @@ class OccupancyNetwork(nn.Module):
         device (device): torch device
     '''
 
-    def __init__(self, decoder=decoder_dict["simple"], encoder=None, encoder_latent=encoder_latent_dict["advance"],
+    def __init__(self, decoder=decoder_dict["batchnorm"], encoder=None, encoder_latent=encoder_latent_dict["advance"],
                  p0_z=None,
                  device=None, z_dim=2, logger=None):
         super().__init__()
