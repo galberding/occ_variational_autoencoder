@@ -84,7 +84,7 @@ class Trainer(BaseTrainer):
     '''
 
     def __init__(self, model, optimizer, device=None, input_type='img',
-                 vis_dir=None, threshold=0.1, eval_sample=False):
+                 vis_dir=None, threshold=0.5, eval_sample=False):
         self.model = model
         self.optimizer = optimizer
         self.device = device
