@@ -254,8 +254,8 @@ class Trainer(BaseTrainer):
                 for j, tag in enumerate(tags):
                     z_tmp = z[:, i]
                     t = transl[:, j]
-                    print(z_tmp)
-                    print(t)
+                    # print(z_tmp)
+                    # print(t)
                     zs[i][tag] = stats.pearsonr(z_tmp, t)
         return zs
 

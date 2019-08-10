@@ -131,10 +131,16 @@ if __name__ == '__main__':
 
     # Write to tensorboard
     trainer = Trainer(occ_net, optimizer, device=device)
-    logger.add_custom_scalars_multilinechart(['pearson_z_0/x', 'pearson_z_0/y', 'pearson_z_0/z'])
+    # logger.add_custom_scalars_multilinechart(['pearson_z_0/x', 'pearson_z_0/y', 'pearson_z_0/z'])
     # epoch_it = 0
     # it = 0
     # vis = 50
+
+    # test = ['pearson_z_0/x', 'pearson_z_0/y', 'pearson_z_0/z', 'pearson_z_1/x', 'pearson_z_1/y', 'pearson_z_1/z',
+    #  'pearson_z_2/x', 'pearson_z_2/y', 'pearson_z_2/z', 'pearson_z_3/x', 'pearson_z_3/y', 'pearson_z_3/z']
+    # logger.add_custom_scalars_multilinechart(['pearson_z_0/x', 'pearson_z_0/y', 'pearson_z_0/z'], title="dim 0")
+    # logger.add_custom_scalars_multilinechart(['pearson_z_1/x', 'pearson_z_1/y', 'pearson_z_1/z'], title="dim 1")
+    # logger.add_custom_scalars_multilinechart(['pearson_z_3/x', 'pearson_z_3/y', 'pearson_z_3/z'], title="dim 2")
     while epoch_it < max_iterations:
         epoch_it += 1
         for batch in train_loader:
@@ -160,11 +166,14 @@ if __name__ == '__main__':
                     logger.add_figure('val/reconstruction/' + str(i), fig, it)
 
                 zs = trainer.calculate_pearson(test_loader_2)
+                multiscal_tags = []
                 for k, v in zs.items():
-                    print(v.keys())
-                    multiscal_tags = []
+                    # print(v.keys())
+
                     for k2, v2 in v.items():
                         tag = 'pearson_z_' + str(k) + '/' + k2
-                        print(v2)
+                        # print(v2)
                         logger.add_scalar(tag, v2[0], it)
                         multiscal_tags.append(tag)
+            # print(multiscal_tags)
+            # logger.add_custom_scalars_multilinechart(multiscal_tags, title=str(k), category="test/"+str(k))
