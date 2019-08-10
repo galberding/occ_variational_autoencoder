@@ -165,15 +165,15 @@ if __name__ == '__main__':
                 for i, fig in enumerate(figs):
                     logger.add_figure('val/reconstruction/' + str(i), fig, it)
 
-                zs = trainer.calculate_pearson(test_loader)
-                multiscal_tags = []
-                for k, v in zs.items():
-                    # print(v.keys())
-
-                    for k2, v2 in v.items():
-                        tag = 'pearson_z_' + str(k) + '/' + k2
-                        # print(v2)
-                        logger.add_scalar(tag, v2[0], it)
-                        multiscal_tags.append(tag)
+                # zs = trainer.calculate_pearson(test_loader)
+                # multiscal_tags = []
+                # for k, v in zs.items():
+                #     # print(v.keys())
+                #
+                #     for k2, v2 in v.items():
+                #         tag = 'pearson_z_' + str(k) + '/' + k2
+                #         # print(v2)
+                #         logger.add_scalar(tag, v2[0], it)
+                #         multiscal_tags.append(tag)
             # print(multiscal_tags)
             # logger.add_custom_scalars_multilinechart(multiscal_tags, title=str(k), category="test/"+str(k))
