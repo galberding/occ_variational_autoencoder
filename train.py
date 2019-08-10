@@ -103,13 +103,13 @@ if __name__ == '__main__':
         worker_init_fn=worker_init_fn)
 
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=25, pin_memory=True, shuffle=False,
+        test_dataset, batch_size=1, pin_memory=True, shuffle=False,
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
-    test_loader_2 = torch.utils.data.DataLoader(
-        test_dataset, batch_size=test_dataset.__len__(), pin_memory=True, shuffle=False,
-    )
+    # test_loader_2 = torch.utils.data.DataLoader(
+    #     test_dataset, batch_size=test_dataset.__len__(), pin_memory=True, shuffle=False,
+    # )
 
     # create the model
     logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
