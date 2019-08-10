@@ -257,6 +257,7 @@ class Trainer(BaseTrainer):
                     # print(z_tmp)
                     # print(t)
                     zs[i][tag] = stats.pearsonr(z_tmp, t)
+            break
         return zs
 
     def compute_loss(self, data):

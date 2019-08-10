@@ -165,7 +165,7 @@ if __name__ == '__main__':
                 for i, fig in enumerate(figs):
                     logger.add_figure('val/reconstruction/' + str(i), fig, it)
 
-                zs = trainer.calculate_pearson(test_loader_2)
+                zs = trainer.calculate_pearson(test_loader)
                 multiscal_tags = []
                 for k, v in zs.items():
                     # print(v.keys())
