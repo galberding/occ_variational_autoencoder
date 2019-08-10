@@ -70,7 +70,7 @@ class BaseTrainer(object):
             eval_fig = self.vis(data)
             eval_list.append(eval_fig)
             count += 1
-            if count == 5:
+            if count == 2:
                 break
         return eval_list
 
