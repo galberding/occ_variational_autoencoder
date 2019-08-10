@@ -49,7 +49,7 @@ class VoxelDataset(data.Dataset):
         size = sample["size"]
         ypr = sample["yaw_pitch_roll"]
         transl = sample["transl"]
-        print(transl)
+        # print(transl)
         yaw = ypr[0]
         pitch = ypr[1]
         roll = ypr[2]
