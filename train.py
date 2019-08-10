@@ -11,6 +11,7 @@ import argparse
 import numpy as np
 from torch.nn import init
 
+
 def glorot_weight_zero_bias(model):
     """
     Initalize parameters of all modules
@@ -48,6 +49,7 @@ if __name__ == '__main__':
                         help="Specify the absolute project path, if not set the current working directory will be choosed")
     parser.add_argument("-v", "--vis", nargs=1, default=[50], type=int, help="visualize after x iterations")
     parser.add_argument("-o", "--output_dir", nargs=1, default=[''], type=str, help="Set output dir")
+    # parser.add_argument('--pearson', nargs=1, default=[100], )
     args = parser.parse_args()
 
     current_dir = args.path[0]
@@ -61,7 +63,7 @@ if __name__ == '__main__':
     checkpoint_every = args.checkpoint[0]
     eval_network = args.eval[0]
     vis = args.vis[0]
-
+    # pearson = args.pearson
 
     print(voxel_model)
     print(z_dim)
@@ -82,7 +84,6 @@ if __name__ == '__main__':
 
     print(OUT_DIR)
 
-
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
 
@@ -97,14 +98,18 @@ if __name__ == '__main__':
 
     # Create the dataloader
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
+        train_dataset, batch_size=batch_size, pin_memory=True, shuffle=True,
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=1, num_workers=4, shuffle=False,
+        test_dataset, batch_size=50, pin_memory=True, shuffle=False,
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
+
+    test_loader_2 = torch.utils.data.DataLoader(
+        test_dataset, batch_size=test_dataset.__len__(), pin_memory=True, shuffle=False,
+    )
 
     # create the model
     logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
@@ -126,6 +131,7 @@ if __name__ == '__main__':
 
     # Write to tensorboard
     trainer = Trainer(occ_net, optimizer, device=device)
+    logger.add_custom_scalars_multilinechart(['pearson_z_0/x', 'pearson_z_0/y', 'pearson_z_0/z'])
     # epoch_it = 0
     # it = 0
     # vis = 50
@@ -148,8 +154,17 @@ if __name__ == '__main__':
                 logger.add_scalar(voxel_model + '/' + 'val/kl-div', (eval_dict['kl']), it)
                 logger.add_scalar('val/iou', (eval_dict['iou']), it)
 
-                # logger.a
             if (it % vis == 0):
                 figs = trainer.visualize(test_loader)
                 for i, fig in enumerate(figs):
-                    logger.add_figure('val/reconstruction/'+str(i), fig, it)
+                    logger.add_figure('val/reconstruction/' + str(i), fig, it)
+
+                zs = trainer.calculate_pearson(test_loader_2)
+                for k, v in zs.items():
+                    print(v.keys())
+                    multiscal_tags = []
+                    for k2, v2 in v.items():
+                        tag = 'pearson_z_' + str(k) + '/' + k2
+                        print(v2)
+                        logger.add_scalar(tag, v2[0], it)
+                        multiscal_tags.append(tag)

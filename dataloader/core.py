@@ -48,6 +48,8 @@ class VoxelDataset(data.Dataset):
         points_iou = sample['points']
         size = sample["size"]
         ypr = sample["yaw_pitch_roll"]
+        transl = sample["transl"]
+        print(transl)
         yaw = ypr[0]
         pitch = ypr[1]
         roll = ypr[2]
@@ -67,6 +69,7 @@ class VoxelDataset(data.Dataset):
         points = torch.tensor(points, dtype=torch.float32)
         occ = torch.tensor(occ, dtype=torch.float32)
 
+
         data = {
             'inputs': inputs,
             'points': points,
@@ -77,7 +80,8 @@ class VoxelDataset(data.Dataset):
             'size': size,
             'yaw': yaw,
             'pitch': pitch,
-            'roll': roll
+            'roll': roll,
+            'transl': transl
         }
 
         return data

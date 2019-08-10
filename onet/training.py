@@ -9,6 +9,7 @@ from torch import distributions as dist
 from VoxelView.main import cloud2voxel
 import matplotlib.pyplot as plt
 import io
+from scipy import stats
 
 
 def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
@@ -28,6 +29,7 @@ def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
     # plt.savefig(buf, format='png')
     # buf.seek(0)
     return fig
+
 
 class BaseTrainer(object):
     ''' Base trainer class.
@@ -63,11 +65,18 @@ class BaseTrainer(object):
         ''' Performs  visualization.
         '''
         eval_list = list()
-
+        count = 0
         for data in tqdm(val_loader):
             eval_fig = self.vis(data)
             eval_list.append(eval_fig)
+            cont += 1
+            if count == 5:
+                break
         return eval_list
+
+    def calculate_pearson(self, data):
+        raise NotImplementedError
+
 
 class Trainer(BaseTrainer):
     ''' Trainer object for the Occupancy Network.
@@ -212,7 +221,7 @@ class Trainer(BaseTrainer):
                                sample=self.eval_sample, **kwargs)
         occ_iou_hat_np = (p_out.probs >= threshold).cpu().numpy()
         pred_points = (points_iou.cpu().numpy()[0][occ_iou_hat_np[0] == 1])
-        voxel_pred = cloud2voxel(pred_points,1,32)
+        voxel_pred = cloud2voxel(pred_points, 1, 32)
 
         # print(inputs.shape)
         # print(occ_iou[0].shape)
@@ -221,6 +230,34 @@ class Trainer(BaseTrainer):
         # print("Org: ",org_points[occ_iou == 1].shape)
         return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
 
+    def calculate_pearson(self, data):
+
+        for batch in data:
+            device = self.device
+            zs = dict()
+            p = batch.get('points').to(device)
+            occ = batch.get('points.occ').to(device)
+            inputs = batch.get('inputs', torch.empty(p.size(0), 0)).to(device)
+            transl = batch.get('transl').cpu().numpy()
+            # yaw = batch.get('yq')
+            kwargs = {}
+            q_z = self.model.infer_z(p, occ, inputs, **kwargs)
+            # print("Point: ", p.size()," Occupancy: ", occ[0])
+            with torch.no_grad():
+                z = q_z.rsample().cpu().numpy()
+            # print(z)
+            # print(transl)
+            # exit(0)
+            tags = ['x', 'y', 'z']
+            for i in range(z.shape[1]):
+                zs[i] = dict()
+                for j, tag in enumerate(tags):
+                    z_tmp = z[:, i]
+                    t = transl[:, j]
+                    print(z_tmp)
+                    print(t)
+                    zs[i][tag] = stats.pearsonr(z_tmp, t)
+        return zs
 
     def compute_loss(self, data):
         ''' Computes the loss.
