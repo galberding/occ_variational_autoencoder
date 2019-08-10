@@ -104,6 +104,7 @@ class OccupancyNetwork(nn.Module):
         p_r = self.decode(p, z, c, **kwargs)
         # print("Occupancys: ", occ, "Point: ",p)
         rec_error = -p_r.log_prob(occ).sum(dim=-1)
+        print(rec_error)
         # print("Reconstructiopn Error", rec_error)
         kl = dist.kl_divergence(q_z, self.p0_z).sum(dim=-1)
         elbo = -rec_error - kl

@@ -47,6 +47,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--path", nargs=1, default=[''], type=str,
                         help="Specify the absolute project path, if not set the current working directory will be choosed")
     parser.add_argument("-v", "--vis", nargs=1, default=[50], type=int, help="visualize after x iterations")
+    parser.add_argument("-o", "--output_dir", nargs=1, default=[''], type=str, help="Set output dir")
     args = parser.parse_args()
 
     current_dir = args.path[0]
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     eval_network = args.eval[0]
     vis = args.vis[0]
 
+
     print(voxel_model)
     print(z_dim)
 
@@ -73,8 +75,13 @@ if __name__ == '__main__':
     model_name = 'model' + '_z_dim_' + str(z_dim) + '.pt'
     DATASET_PATH = os.path.join(current_dir, data_path, voxel_model, '')
     print(DATASET_PATH)
-    OUT_DIR = os.path.join(current_dir, out_path, voxel_model, '')
+    if not args.output_dir[0]:
+        OUT_DIR = os.path.join(current_dir, out_path, voxel_model, '')
+    else:
+        OUT_DIR = os.path.join(current_dir, out_path, args.output_dir[0], '')
+
     print(OUT_DIR)
+
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
