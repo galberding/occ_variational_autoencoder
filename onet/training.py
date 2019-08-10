@@ -69,7 +69,7 @@ class BaseTrainer(object):
         for data in tqdm(val_loader):
             eval_fig = self.vis(data)
             eval_list.append(eval_fig)
-            cont += 1
+            count += 1
             if count == 5:
                 break
         return eval_list
