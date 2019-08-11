@@ -10,6 +10,9 @@ from VoxelView.main import cloud2voxel
 import matplotlib.pyplot as plt
 import io
 from scipy import stats
+from vis_vae import set_subplot_colormap
+from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 
 
 def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
@@ -92,7 +95,7 @@ class BaseTrainer(object):
             zs.append(z.cpu().numpy()[0])
         return np.array(zs), np.array(attr)
 
-    def vis_latent_attributes(self):
+    def vis_latent_attributes(self, val_loader):
         return self.vis_attr(*self.get_zs_and_attr(val_loader))
     
     def calculate_pears(self, val_loader):
@@ -253,7 +256,26 @@ class Trainer(BaseTrainer):
 
 
     def vis_attr(self, zs, attr):
-        pass
+        # TODO: only import from vis_vae.py
+        if zs.shape[1] > 2:
+            samples_pca = PCA(n_components=2).fit_transform(zs)
+            samples_tsne = TSNE(n_components=2).fit_transform(zs)
+        elif zs.shape[1] == 1:
+            print("Unsupported dim of latent space!")
+            exit(0)
+
+        # samples = TSNE(n_components=2).fit_transform(samples)
+        # print(samples.shape)
+
+        fig, axes = plt.subplots(2, 3, figsize=(30, 20))
+        set_subplot_colormap(axes[0, 0], samples_pca, attr[:,0], title="X", cmap="bwr")
+        set_subplot_colormap(axes[0, 1], samples_pca, attr[:,1], title="Y", cmap="bwr")
+        set_subplot_colormap(axes[0, 2], samples_pca, attr[:,2], title="Z", cmap="bwr")
+
+        set_subplot_colormap(axes[1, 0], samples_tsne, attr[:,0], title="X", cmap="bwr")
+        set_subplot_colormap(axes[1, 1], samples_tsne, attr[:,1], title="Y", cmap="bwr")
+        set_subplot_colormap(axes[1, 2], samples_tsne, attr[:,2], title="Z", cmap="bwr")
+        return [fig]
 
     def calculate_pearson(self, zs, attr):
 

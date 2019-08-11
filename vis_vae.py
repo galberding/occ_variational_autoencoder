@@ -10,8 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.cm as cm
-from sklearn.manifold import TSNE
 import argparse
+from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 
 

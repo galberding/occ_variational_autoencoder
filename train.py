@@ -169,10 +169,13 @@ if __name__ == '__main__':
                 print("Evaluated network")
 
             if (it % vis == 0):
-                figs = trainer.visualize(test_loader)
-                for i, fig in enumerate(figs):
-                    logger.add_figure('val/reconstruction/' + str(i), fig, it)
-                
+                # figs = trainer.visualize(test_loader)
+                # for i, fig in enumerate(figs):
+                #     logger.add_figure('val/reconstruction/' + str(i), fig, it)
+                # TODO: consider to call together with pears calculation to only oce cycle through the test set
+                latent_vis = trainer.vis_latent_attributes(test_loader)
+                for i, tag in enumerate(['']):
+                    logger.add_figure('val/latent_attr_vis/' + tag, latent_vis[i], it)
 
             if (it % pears == 0):
                 # zs = trainer.calculate_pearson(test_loader)
