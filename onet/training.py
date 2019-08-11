@@ -70,12 +70,33 @@ class BaseTrainer(object):
             eval_fig = self.vis(data)
             eval_list.append(eval_fig)
             count += 1
-            if count == 2:
+            if count == 3:
                 break
         return eval_list
 
-    def calculate_pearson(self, data):
-        raise NotImplementedError
+    def get_zs_and_attr(self, val_loader):
+        zs = list()
+        count = 0
+        attr = list()
+        device = self.device
+        for batch in tqdm(val_loader):
+            with torch.no_grad():
+                kwargs = {}
+                p = batch.get('points').to(device)
+                occ = batch.get('points.occ').to(device)
+                inputs = batch.get('inputs', torch.empty(p.size(0), 0)).to(device)
+                transl = batch.get('transl').cpu().numpy()
+                q_z = self.model.infer_z(p, occ, inputs, **kwargs)
+                z = q_z.rsample()
+            attr.append(transl[0])
+            zs.append(z.cpu().numpy()[0])
+        return np.array(zs), np.array(attr)
+
+    def vis_latent_attributes(self):
+        return self.vis_attr(*self.get_zs_and_attr(val_loader))
+    
+    def calculate_pears(self, val_loader):
+        return self.calculate_pearson(*self.get_zs_and_attr(val_loader))
 
 
 class Trainer(BaseTrainer):
@@ -230,35 +251,24 @@ class Trainer(BaseTrainer):
         # print("Org: ",org_points[occ_iou == 1].shape)
         return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
 
-    def calculate_pearson(self, data):
 
-        for batch in data:
-            device = self.device
-            zs = dict()
-            p = batch.get('points').to(device)
-            occ = batch.get('points.occ').to(device)
-            inputs = batch.get('inputs', torch.empty(p.size(0), 0)).to(device)
-            transl = batch.get('transl').cpu().numpy()
-            # yaw = batch.get('yq')
-            kwargs = {}
-            q_z = self.model.infer_z(p, occ, inputs, **kwargs)
-            # print("Point: ", p.size()," Occupancy: ", occ[0])
-            with torch.no_grad():
-                z = q_z.rsample().cpu().numpy()
-            # print(z)
-            # print(transl)
-            # exit(0)
-            tags = ['x', 'y', 'z']
-            for i in range(z.shape[1]):
-                zs[i] = dict()
-                for j, tag in enumerate(tags):
-                    z_tmp = z[:, i]
-                    t = transl[:, j]
-                    # print(z_tmp)
-                    # print(t)
-                    zs[i][tag] = stats.pearsonr(z_tmp, t)
-            break
-        return zs
+    def vis_attr(self, zs, attr):
+        pass
+
+    def calculate_pearson(self, zs, attr):
+
+        tags = ['x', 'y', 'z']
+        zs_pears = dict()
+        print(zs.shape)
+        for i in range(zs.shape[1]):
+            zs_pears[i] = dict()
+            for j, tag in enumerate(tags):
+                z_tmp = zs[:, i]
+                t = attr[:, j]
+                zs_pears[i][tag] = stats.pearsonr(z_tmp, t)[0]
+        return zs_pears
+
+    
 
     def compute_loss(self, data):
         ''' Computes the loss.

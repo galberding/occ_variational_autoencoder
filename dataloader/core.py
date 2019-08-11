@@ -101,6 +101,19 @@ def collate_remove_none(batch):
     return data.dataloader.default_collate(batch)
 
 
+def collate_to_numpy(batch):
+    ''' Collater that puts each data field into a tensor with outer dimension
+        batch size.
+
+    Args:
+        batch: batch
+    '''
+
+    batch = list(filter(lambda x: x is not None, batch))
+    # print(batch[0].shape)
+    # print(batch)
+    return np.array(batch)
+
 def worker_init_fn(worker_id):
     ''' Worker init function to ensure true randomness.
     '''
