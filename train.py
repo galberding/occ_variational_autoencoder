@@ -169,9 +169,9 @@ if __name__ == '__main__':
                 print("Evaluated network")
 
             if (it % vis == 0):
-                # figs = trainer.visualize(test_loader)
-                # for i, fig in enumerate(figs):
-                #     logger.add_figure('val/reconstruction/' + str(i), fig, it)
+                figs = trainer.visualize(test_loader)
+                for i, fig in enumerate(figs):
+                    logger.add_figure('val/reconstruction/' + str(i), fig, it)
                 # TODO: consider to call together with pears calculation to only oce cycle through the test set
                 latent_vis = trainer.vis_latent_attributes(test_loader)
                 for i, tag in enumerate(['']):
@@ -184,6 +184,6 @@ if __name__ == '__main__':
                 multiscal_tags = []
                 for k, v in zs.items():
                     for k2, v2 in v.items():
-                        tag = 'val/pearson_z_' + str(k) + '/' + k2
+                        tag = 'pearson_z_' + str(k) + '/' + k2
                         logger.add_scalar(tag, v2, it)
                         multiscal_tags.append(tag)
