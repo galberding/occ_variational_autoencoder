@@ -109,6 +109,11 @@ if __name__ == '__main__':
         collate_fn=collate_remove_none,
         worker_init_fn=worker_init_fn)
 
+    vis_train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=1, num_workers=2, shuffle=False,
+        collate_fn=collate_remove_none,
+        worker_init_fn=worker_init_fn)
+
     
     # test_loader2 = torch.utils.data.DataLoader(
     #     test_dataset, batch_size=50, num_workers=2, shuffle=False,
@@ -169,9 +174,14 @@ if __name__ == '__main__':
                 print("Evaluated network")
 
             if (it % vis == 0):
-                figs = trainer.visualize(test_loader)
-                for i, fig in enumerate(figs):
+                figs_test = trainer.visualize(test_loader)
+                figs_train = trainer.visualize(vis_train_loader)
+
+                for i, fig in enumerate(figs_test):
                     logger.add_figure('val/reconstruction/' + str(i), fig, it)
+
+                for i, fig in enumerate(figs_train):
+                    logger.add_figure('train/reconstruction/' + str(i), fig, it)
                 # TODO: consider to call together with pears calculation to only oce cycle through the test set
                 latent_vis = trainer.vis_latent_attributes(test_loader)
                 for i, tag in enumerate(['']):
