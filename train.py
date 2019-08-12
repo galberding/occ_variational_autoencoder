@@ -10,6 +10,7 @@ import os
 import argparse
 import numpy as np
 from torch.nn import init
+import datetime
 
 
 def glorot_weight_zero_bias(model):
@@ -76,7 +77,7 @@ if __name__ == '__main__':
 
     out_path = "out/"
     data_path = "data/dataset/"
-    model_name = 'model' + '_z_dim_' + str(z_dim) + '.pt'
+    model_name = 'model' + '_z_dim_' + str(z_dim) +'_batch_'+str(batch_size) +'.pt'
     DATASET_PATH = os.path.join(current_dir, data_path, voxel_model, '')
     print(DATASET_PATH)
     if not args.output_dir[0]:
@@ -125,7 +126,8 @@ if __name__ == '__main__':
     # )
 
     # create the model
-    logger = SummaryWriter(os.path.join(OUT_DIR, 'logs'))
+
+    logger = SummaryWriter(os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S')))
     occ_net = OccupancyNetwork(z_dim=z_dim, device=device, logger=logger)
     glorot_weight_zero_bias(occ_net)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)

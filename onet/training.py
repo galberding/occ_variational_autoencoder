@@ -285,9 +285,11 @@ class Trainer(BaseTrainer):
         set_subplot_colormap(axes[1, 2], samples_pca, roll, title="Roll", cmap=self.cmap)
         return [fig]
 
-    def calculate_pearson(self, zs, attr):
+    def calculate_pearson(self, zs, attr, yaw, pitch, roll):
 
-        tags = ['x', 'y', 'z']
+        tags = ['0 x transl', '1 y transl', '2 z transl']
+        tags_ypr = ['3 yaw', '4 pitch', '5 roll']
+        ypr = [yaw, pitch, roll]
         zs_pears = dict()
         print(zs.shape)
         for i in range(zs.shape[1]):
@@ -296,6 +298,7 @@ class Trainer(BaseTrainer):
                 z_tmp = zs[:, i]
                 t = attr[:, j]
                 zs_pears[i][tag] = stats.pearsonr(z_tmp, t)[0]
+                zs_pears[i][tags_ypr[j]] = stats.pearsonr(z_tmp, ypr[j])[0]
         return zs_pears
 
     def compute_loss(self, data):
