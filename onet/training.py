@@ -8,6 +8,7 @@ import os
 from torch import distributions as dist
 from VoxelView.main import cloud2voxel
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import io
 from scipy import stats
 from vis_vae import set_subplot_colormap
@@ -81,6 +82,9 @@ class BaseTrainer(object):
         zs = list()
         count = 0
         attr = list()
+        yaw = list()
+        pitch = list()
+        roll = list()
         device = self.device
         for batch in tqdm(val_loader):
             with torch.no_grad():
@@ -89,15 +93,18 @@ class BaseTrainer(object):
                 occ = batch.get('points.occ').to(device)
                 inputs = batch.get('inputs', torch.empty(p.size(0), 0)).to(device)
                 transl = batch.get('transl').cpu().numpy()
+                yaw.append(batch["yaw"].cpu().numpy()[0])
+                pitch.append(batch["pitch"].cpu().numpy()[0])
+                roll.append(batch["roll"].cpu().numpy()[0])
                 q_z = self.model.infer_z(p, occ, inputs, **kwargs)
                 z = q_z.rsample()
             attr.append(transl[0])
             zs.append(z.cpu().numpy()[0])
-        return np.array(zs), np.array(attr)
+        return np.array(zs), np.array(attr), yaw, pitch, roll
 
     def vis_latent_attributes(self, val_loader):
         return self.vis_attr(*self.get_zs_and_attr(val_loader))
-    
+
     def calculate_pears(self, val_loader):
         return self.calculate_pearson(*self.get_zs_and_attr(val_loader))
 
@@ -125,6 +132,7 @@ class Trainer(BaseTrainer):
         self.vis_dir = vis_dir
         self.threshold = threshold
         self.eval_sample = eval_sample
+        self.cmap = LinearSegmentedColormap.from_list('mycmap', ['blue', 'white', 'blue'])
 
         if vis_dir is not None and not os.path.exists(vis_dir):
             os.makedirs(vis_dir)
@@ -254,12 +262,12 @@ class Trainer(BaseTrainer):
         # print("Org: ",org_points[occ_iou == 1].shape)
         return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
 
-
-    def vis_attr(self, zs, attr):
+    def vis_attr(self, zs, transl, yaw, pitch, roll):
         # TODO: only import from vis_vae.py
+
         if zs.shape[1] > 2:
             samples_pca = PCA(n_components=2).fit_transform(zs)
-            samples_tsne = TSNE(n_components=2).fit_transform(zs)
+            # samples_tsne = TSNE(n_components=2).fit_transform(zs)
         elif zs.shape[1] == 1:
             print("Unsupported dim of latent space!")
             exit(0)
@@ -267,14 +275,14 @@ class Trainer(BaseTrainer):
         # samples = TSNE(n_components=2).fit_transform(samples)
         # print(samples.shape)
 
-        fig, axes = plt.subplots(2, 3, figsize=(30, 20))
-        set_subplot_colormap(axes[0, 0], samples_pca, attr[:,0], title="X", cmap="bwr")
-        set_subplot_colormap(axes[0, 1], samples_pca, attr[:,1], title="Y", cmap="bwr")
-        set_subplot_colormap(axes[0, 2], samples_pca, attr[:,2], title="Z", cmap="bwr")
+        fig, axes = plt.subplots(2, 3, figsize=(20, 10))
+        set_subplot_colormap(axes[0, 0], samples_pca, transl[:, 0], title="X-Translation", cmap="bwr")
+        set_subplot_colormap(axes[0, 1], samples_pca, transl[:, 1], title="Y-Translation", cmap="bwr")
+        set_subplot_colormap(axes[0, 2], samples_pca, transl[:, 2], title="Z-Translation", cmap="bwr")
 
-        set_subplot_colormap(axes[1, 0], samples_tsne, attr[:,0], title="X", cmap="bwr")
-        set_subplot_colormap(axes[1, 1], samples_tsne, attr[:,1], title="Y", cmap="bwr")
-        set_subplot_colormap(axes[1, 2], samples_tsne, attr[:,2], title="Z", cmap="bwr")
+        set_subplot_colormap(axes[1, 0], samples_pca, yaw, title="Yaw", cmap=self.cmap)
+        set_subplot_colormap(axes[1, 1], samples_pca, pitch, title="Pitch", cmap=self.cmap)
+        set_subplot_colormap(axes[1, 2], samples_pca, roll, title="Roll", cmap=self.cmap)
         return [fig]
 
     def calculate_pearson(self, zs, attr):
@@ -289,8 +297,6 @@ class Trainer(BaseTrainer):
                 t = attr[:, j]
                 zs_pears[i][tag] = stats.pearsonr(z_tmp, t)[0]
         return zs_pears
-
-    
 
     def compute_loss(self, data):
         ''' Computes the loss.

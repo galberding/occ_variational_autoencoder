@@ -13,6 +13,7 @@ import matplotlib.cm as cm
 import argparse
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def set_subplot_colormap(axes, samples, attr, cmap="hot_r", title="Title", xlable="X", ylable="Y"):
@@ -107,10 +108,10 @@ if __name__ == '__main__':
 
     # samples = TSNE(n_components=2).fit_transform(samples)
     # print(samples.shape)
-
+    cmap = LinearSegmentedColormap.from_list('mycmap', ['blue', 'white', 'blue'])
     fig, axes = plt.subplots(2, 4, figsize=(20, 20))
     set_subplot_colormap(axes[0, 0], samples_pca, sizes, title="Sizes", cmap="summer_r")
-    set_subplot_colormap(axes[0, 1], samples_pca, yaw, title="Yaw", cmap="bwr")
+    set_subplot_colormap(axes[0, 1], samples_pca, yaw, title="Yaw", cmap=cmap)
     set_subplot_colormap(axes[0, 2], samples_pca, pitch, title="Pitch", cmap="bwr")
     set_subplot_colormap(axes[0, 3], samples_pca, roll, title="Roll", cmap="bwr")
 
