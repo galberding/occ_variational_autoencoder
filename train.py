@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     # create the model
 
-    logger = SummaryWriter(os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S')))
+    logger = SummaryWriter(os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S'+model_name[:-3])))
     occ_net = OccupancyNetwork(z_dim=z_dim, device=device, logger=logger)
     glorot_weight_zero_bias(occ_net)
     optimizer = optim.Adam(occ_net.parameters(), lr=1e-4)
