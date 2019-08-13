@@ -112,12 +112,16 @@ class VoxelEncoder(nn.Module):
 
         self.convolution = nn.Sequential(
             nn.Conv3d(1, 8, 3), #30x30x30
+            nn.ReLU(),
             nn.BatchNorm3d(8),
             nn.Conv3d(8, 16, 3, stride=2, padding=1),
+            nn.ReLU(),
             nn.BatchNorm3d(16),
             nn.Conv3d(16, 32, 3, padding=0, stride=1),
+            nn.ReLU(),
             nn.BatchNorm3d(32),
             nn.Conv3d(32, 64, 3, padding=1, stride=2),
+            nn.ReLU(),
             nn.BatchNorm3d(64)
         )
 
@@ -131,9 +135,6 @@ class VoxelEncoder(nn.Module):
         self.fc_logstd = nn.Linear(21952, z_dim)
         self.mean_norm = nn.BatchNorm1d(z_dim)
         self.std_norm = nn.BatchNorm1d(z_dim)
-
-        self.dropout3d = nn.Dropout3d(p=self.p)
-        self.dropout = nn.Dropout(p=self.p)
 
     def forward(self, p, x, c=None, **kwargs):
         batch_size = c.size(0)
