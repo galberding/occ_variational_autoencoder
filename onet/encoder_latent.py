@@ -111,7 +111,7 @@ class VoxelEncoder(nn.Module):
         # Submodules
 
         self.convolution = nn.Sequential(
-            nn.Conv3d(1, 8, 3), #30x30x30
+            nn.Conv3d(1, 8, 9, padding=3, stride=1), #30x30x30
             nn.ReLU(),
             nn.BatchNorm3d(8),
             nn.Conv3d(8, 16, 3, stride=2, padding=1),
