@@ -33,22 +33,17 @@ def parse_args():
     max_iterations = args.max_iterations[0]
     print(max_iterations)
     batch_size = args.batch[0]
-<<<<<<< HEAD
     error = args.error[0]
     return args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error
-=======
-    return args, batch_size, current_dir, max_iterations, voxel_model, z_dim
->>>>>>> 296fddc41fdd22a1d3110d853af5a40fedb74f46
+
 
 
 
 def  main():
 
-<<<<<<< HEAD
+
     args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error = parse_args()
-=======
-    args, batch_size, current_dir, max_iterations, voxel_model, z_dim = parse_args()
->>>>>>> 296fddc41fdd22a1d3110d853af5a40fedb74f46
+
 
     for z in z_dim:
         DATASET_PATH, OUT_DIR, model_name = create_work_dirs(args, batch_size, current_dir, voxel_model, z)
@@ -69,11 +64,9 @@ def  main():
         # Model and trainer loading
         checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z)
 
-<<<<<<< HEAD
+
         train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error, max_iterations=max_iterations)
-=======
-        train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger)
->>>>>>> 296fddc41fdd22a1d3110d853af5a40fedb74f46
+
 
 
 if __name__ == '__main__':
