@@ -146,13 +146,9 @@ def train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vi
 
     :return:
     '''
-<<<<<<< HEAD
+
     loss = sys.maxsize
     while epoch_it < max_iterations or error > loss:
-=======
-    current_error = sys.maxsize
-    while epoch_it < max_iterations or error > current_error:
->>>>>>> 296fddc41fdd22a1d3110d853af5a40fedb74f46
         epoch_it += 1
         for batch in train_loader:
             it += 1
