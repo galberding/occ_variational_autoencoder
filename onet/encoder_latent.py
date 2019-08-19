@@ -129,10 +129,11 @@ class VoxelEncoder(nn.Module):
         self.conv_0 = nn.Conv3d(1, 8, 3) # 15x15x15
         self.conv_1 = nn.Conv3d(16, 32, 3, stride=1) # 13x13x13
         self.conv_2 = nn.Conv3d(32, 64, 3, padding=1, stride=2) #7x7x7
-        self.fc = nn.Linear(200, 50)
+        self.fc = nn.Linear(21952, 343)
+        self.fc_lin_bnorm = nn.BatchNorm1d(343)
         self.actvn = F.relu
-        self.fc_mean = nn.Linear(21952, z_dim)
-        self.fc_logstd = nn.Linear(21952, z_dim)
+        self.fc_mean = nn.Linear(343, z_dim)
+        self.fc_logstd = nn.Linear(343, z_dim)
         self.mean_norm = nn.BatchNorm1d(z_dim)
         self.std_norm = nn.BatchNorm1d(z_dim)
 
@@ -149,12 +150,13 @@ class VoxelEncoder(nn.Module):
         net = self.convolution(c)
         # print("Shape: ", net.shape)
         hidden = net.view(batch_size, 21952)
-        # c_out = self.fc((hidden))
+        hidden = self.fc((hidden))
+        hidden = self.fc_lin_bnorm(self.actvn(hidden))
         # c_out = self.actvn(c_out)
-        mean = self.fc_mean(self.actvn(hidden))
-        logstd = self.fc_logstd(self.actvn(hidden))
+        mean = self.fc_mean(hidden)
+        logstd = self.fc_logstd(hidden)
 
-        # mean = self.mean_norm(mean)
-        # logstd = self.std_norm(logstd)
+        mean = self.mean_norm(mean)
+        logstd = self.std_norm(logstd)
 
         return mean, logstd
