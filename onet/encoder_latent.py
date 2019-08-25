@@ -111,25 +111,25 @@ class VoxelEncoder(nn.Module):
         # Submodules
 
         self.convolution = nn.Sequential(
-            nn.Conv3d(1, 8, 9, padding=3, stride=1), #30x30x30
-            nn.ReLU(),
-            nn.BatchNorm3d(8),
-            nn.Conv3d(8, 16, 3, stride=2, padding=1),
+            nn.Conv3d(1, 16, 3), #30x30x30
             nn.ReLU(),
             nn.BatchNorm3d(16),
-            nn.Conv3d(16, 32, 3, padding=0, stride=1),
+            nn.Conv3d(16, 32, 3, stride=2, padding=1),
             nn.ReLU(),
             nn.BatchNorm3d(32),
-            nn.Conv3d(32, 64, 3, padding=1, stride=2),
+            nn.Conv3d(32, 64, 3, padding=0, stride=1),
             nn.ReLU(),
-            nn.BatchNorm3d(64)
+            nn.BatchNorm3d(64),
+            nn.Conv3d(64, 128, 3, padding=1, stride=2),
+            nn.ReLU(),
+            nn.BatchNorm3d(128)
         )
 
         self.conv_in = nn.Conv3d(1, 8, 3) # 30x30x30
         self.conv_0 = nn.Conv3d(1, 8, 3) # 15x15x15
         self.conv_1 = nn.Conv3d(16, 32, 3, stride=1) # 13x13x13
         self.conv_2 = nn.Conv3d(32, 64, 3, padding=1, stride=2) #7x7x7
-        self.fc = nn.Linear(21952, 343)
+        self.fc = nn.Linear(43904, 343)
         self.fc_lin_bnorm = nn.BatchNorm1d(343)
         self.actvn = F.relu
         self.fc_mean = nn.Linear(343, z_dim)
@@ -149,7 +149,7 @@ class VoxelEncoder(nn.Module):
         # net = self.conv_2(self.actvn(net))
         net = self.convolution(c)
         # print("Shape: ", net.shape)
-        hidden = net.view(batch_size, 21952)
+        hidden = net.view(batch_size, 43904)
         hidden = self.fc((hidden))
         hidden = self.fc_lin_bnorm(self.actvn(hidden))
         # c_out = self.actvn(c_out)
