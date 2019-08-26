@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument("-z", "--z_dim", nargs=1, default=[128], type=int, help="Set the dimension of the latent space")
     parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set max epoch iteration")
     parser.add_argument("-o", "--output_dir", nargs=1, default=[''], type=str, help="Set output dir")
-    parser.add_argument("-b", "--batch", nargs=1, default=[2], type=int, help="Batchsize")
+    parser.add_argument("-b", "--batch", nargs=1, default=[3], type=int, help="Batchsize")
     parser.add_argument("-e", "--error", nargs=1, default=[1], type=int, help="Quit training when error is reached!")
 
     args = parser.parse_args()
@@ -65,7 +65,7 @@ def  main():
         checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z)
 
 
-        train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error, max_iterations=max_iterations)
+        train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error, max_iterations=max_iterations, epoch_it=epoch_it, it=it)
 
 
 

@@ -58,8 +58,14 @@ class VoxelDataset(data.Dataset):
         batch_samples = np.random.choice(combinded.shape[0], 5000)
         batch = combinded[batch_samples]
         occ = batch[:, -1]
+        occ[occ == 0] = 0.1
+        occ[occ == 1] = 0.99
+        # print(occ)
         points = batch[:, :-1]
         inputs = np.array(inputs, dtype=np.float)
+        inputs[inputs == 1] = 2
+        inputs[inputs == 0] = -1
+
 
         # print("occ: ", occ.shape, " points: ", points.shape)
         points_iou = torch.tensor(points_iou, dtype=torch.float32)

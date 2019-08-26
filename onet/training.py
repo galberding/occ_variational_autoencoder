@@ -16,6 +16,15 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 
 
+def bin_cross_entropy(logits, occ):
+    gamma = 0.97
+    # fp = -occ*torch.log(logits)
+    # fn = - (1-occ)*torch.log(1.0 - logits)
+    # return fp + fn
+    return -gamma*occ*torch.log(logits)- (1-gamma)*(1-occ)*torch.log(1.0 - logits)
+
+
+
 def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
     """Create a pyplot plot and save to buffer."""
     fig, axes = plt.subplots(2, 2, subplot_kw=dict(projection='3d'), figsize=(10, 10))
@@ -324,9 +333,11 @@ class Trainer(BaseTrainer):
         loss = kl.mean()
         c = torch.empty(128, 0)
         # General points
-        logits = self.model.decode(p, z, c, **kwargs).logits
-        loss_i = F.binary_cross_entropy_with_logits(
-            logits, occ, reduction='none')
-        loss = loss + loss_i.sum(-1).mean()
+        pr = self.model.decode(p, z, c, **kwargs)
+        # loss_i = F.binary_cross_entropy_with_logits(pr.logits, occ, reduction='none')
+
+        loss_in =  bin_cross_entropy(pr.probs, occ).sum(-1).mean()
+        # loss_i = loss_i.sum(-1).mean()
+        loss = loss + loss_in
 
         return loss

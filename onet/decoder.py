@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 import torch.nn.functional as F
 from onet.layers import (
     ResnetBlockFC, CResnetBlockConv1d,
@@ -9,9 +10,7 @@ from onet.layers import (
 
 class Decoder(nn.Module):
     ''' Decoder class.
-
     It does not perform any form of normalization.
-
     Args:
         dim (int): input dimension
         z_dim (int): dimension of latent code z
@@ -20,7 +19,7 @@ class Decoder(nn.Module):
         leaky (bool): whether to use leaky ReLUs
     '''
 
-    def __init__(self, dim=3, z_dim=128, c_dim=0,
+    def __init__(self, dim=3, z_dim=128, c_dim=128,
                  hidden_size=128, leaky=False):
         super().__init__()
         self.z_dim = z_dim
@@ -32,21 +31,16 @@ class Decoder(nn.Module):
         if not z_dim == 0:
             self.fc_z = nn.Linear(z_dim, hidden_size)
 
-        self.p_bnorm = nn.BatchNorm1d(5000)
-        self.z_bnorm = nn.BatchNorm1d(hidden_size)
+        if not c_dim == 0:
+            self.fc_c = nn.Linear(c_dim, hidden_size)
 
-        self.resnet = nn.Sequential(ResnetBlockFC(hidden_size),
-                                    nn.BatchNorm1d(5000),
-                                    ResnetBlockFC(hidden_size),
-                                    nn.BatchNorm1d(5000),
-                                    ResnetBlockFC(hidden_size),
-                                    nn.BatchNorm1d(5000),
-                                    ResnetBlockFC(hidden_size),
-                                    nn.BatchNorm1d(5000),
-                                    ResnetBlockFC(hidden_size),
-                                    nn.BatchNorm1d(5000),)
+        self.block0 = ResnetBlockFC(hidden_size)
+        self.block1 = ResnetBlockFC(hidden_size)
+        self.block2 = ResnetBlockFC(hidden_size)
+        self.block3 = ResnetBlockFC(hidden_size)
+        self.block4 = ResnetBlockFC(hidden_size)
+
         self.fc_out = nn.Linear(hidden_size, 1)
-
 
         if not leaky:
             self.actvn = F.relu
@@ -55,31 +49,29 @@ class Decoder(nn.Module):
 
     def forward(self, p, z, c=None, **kwargs):
         batch_size, T, D = p.size()
-        # TODO: quick fix for setting the c input
-        c = None
-        net = self.fc_p(p)
-        # net = self.p_bnorm(net)
-        # print(z)
-        if self.z_dim != 0:
 
-            net_z = self.fc_z(z)
-            net_z = self.z_bnorm(net_z).unsqueeze(1)
+        net = self.fc_p(p)
+
+        if self.z_dim != 0:
+            net_z = self.fc_z(z).unsqueeze(1)
+            # net = torch.cat((net,net_z), 2)
             net = net + net_z
 
         # if self.c_dim != 0:
         #     net_c = self.fc_c(c).unsqueeze(1)
         #     net = net + net_c
 
-        net = self.resnet(net)
-        # net = self.block1(net)
-        # net = self.block2(net)
-        # net = self.block3(net)
-        # net = self.block4(net)
+        net = self.block0(net)
+        net = self.block1(net)
+        net = self.block2(net)
+        net = self.block3(net)
+        net = self.block4(net)
 
         out = self.fc_out(self.actvn(net))
         out = out.squeeze(-1)
 
         return out
+
 
 
 class DecoderCBatchNorm(nn.Module):
@@ -300,9 +292,15 @@ class DecoderBatchNorm(nn.Module):
 
         if self.z_dim != 0:
             net_z = self.fc_z(z).unsqueeze(2)
+            # net = torch.cat((net,net_z))
             net = net + net_z
 
         # if self.c_dim != 0:
+
+
+
+
+
         #     net_c = self.fc_c(c).unsqueeze(2)
         #     net = net + net_c
 
