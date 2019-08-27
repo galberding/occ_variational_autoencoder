@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 
 
 def bin_cross_entropy(logits, occ):
-    gamma = 0.97
+    gamma = 0.6
     # fp = -occ*torch.log(logits)
     # fn = - (1-occ)*torch.log(1.0 - logits)
     # return fp + fn
@@ -32,7 +32,7 @@ def gen_plot(cloud, voxel, cloud_pred, voxel_pred):
     axes[0, 1].set_aspect('equal')
     axes[1, 0].set_aspect('equal')
     axes[1, 1].set_aspect('equal')
-    voxel = np.array(voxel.cpu(), dtype=np.float)
+    # voxel = np.array(voxel, dtype=np.float)
     axes[0, 0].voxels(voxel, edgecolor="k")
     axes[0, 1].voxels(voxel_pred, edgecolor="k")
     axes[1, 0].scatter(cloud[:, 0], cloud[:, 1], cloud[:, 2])
@@ -269,7 +269,7 @@ class Trainer(BaseTrainer):
         occ_iou = occ_iou.cpu().numpy()[0]
         org_points = points_iou.cpu().numpy()[0]
         # print("Org: ",org_points[occ_iou == 1].shape)
-        return gen_plot(org_points[occ_iou == 1], inputs[0], pred_points, voxel_pred)
+        return gen_plot(org_points[occ_iou == 1], cloud2voxel(org_points[occ_iou == 1], 1, 32), pred_points, voxel_pred)
 
     def vis_attr(self, zs, transl, yaw, pitch, roll):
         # TODO: only import from vis_vae.py

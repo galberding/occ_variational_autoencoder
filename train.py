@@ -38,9 +38,9 @@ def glorot_weight_zero_bias(model):
 
 def main():
     # Argument parser
-    args, batch_size, checkpoint_every, current_dir, eval_network, max_iterations, pears, vis, voxel_model, z_dim = parse_args()
+    args, batch_size, checkpoint_every, current_dir, eval_network, max_iterations, pears, vis, voxel_model, z_dim, gamma = parse_args()
 
-    DATASET_PATH, OUT_DIR, model_name = create_work_dirs(args, batch_size, current_dir, voxel_model, z_dim)
+    DATASET_PATH, OUT_DIR, model_name = create_work_dirs(args, batch_size, current_dir, voxel_model, z_dim[0])
 
     # Create torch device for GPU computing
     is_cuda = (torch.cuda.is_available())
@@ -54,9 +54,13 @@ def main():
         os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S' + model_name[5:-3])))
 
     # Model and trainer loading
-    checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z_dim)
+    checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z_dim[0])
 
-    train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger)
+    # train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, vis=1)
+
+    train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=5,
+               max_iterations=max_iterations, epoch_it=epoch_it, it=it, checkpoint_every=eval_network,
+               eval_network=eval_network, pears=eval_network, vis=eval_network)
 
     # Training
     # train_loop(checkpoint_every, checkpoint_io, epoch_it, eval_network, it, logger, max_iterations, model_name, pears,
@@ -99,14 +103,15 @@ def parse_args():
     parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set max epoch iteration")
     parser.add_argument("-c", "--checkpoint", nargs=1, default=[100], type=int,
                         help="Set after how many iterations the model should be saved.")
-    parser.add_argument("-e", "--eval", nargs=1, default=[100], type=int, help="Perform the validation every x rounds.")
-    parser.add_argument("-b", "--batch", nargs=1, default=[5], type=int, help="Batchsize")
+    parser.add_argument("-e", "--eval", nargs=1, default=[1000], type=int, help="Perform the validation every x rounds.")
+    parser.add_argument("-b", "--batch", nargs=1, default=[25], type=int, help="Batchsize")
     parser.add_argument("-p", "--path", nargs=1, default=[''], type=str,
                         help="Specify the absolute project path, if not set the current working directory will be choosed")
     parser.add_argument("-v", "--vis", nargs=1, default=[50], type=int, help="visualize after x iterations")
     parser.add_argument("-o", "--output_dir", nargs=1, default=[''], type=str, help="Set output dir")
     parser.add_argument("--pearson", nargs=1, default=[100], type=int,
                         help="Set amount of iterations when to calculate pearson")
+    parser.add_argument('--gamma', nargs=1, default=[0.6], help="Weight factor for binary cross entropy (0,1). Set low to penalize FP, set hight to penalize FN more. (Not yet implemented)")
     # parser.add_argument('--pearson', nargs=1, default=[100], )
     args = parser.parse_args()
     current_dir = args.path[0]
@@ -121,12 +126,13 @@ def parse_args():
     eval_network = args.eval[0]
     vis = args.vis[0]
     pears = args.pearson[0]
-    return args, batch_size, checkpoint_every, current_dir, eval_network, max_iterations, pears, vis, voxel_model, z_dim
+    gamma = args.gamma[0]
+    return args, batch_size, checkpoint_every, current_dir, eval_network, max_iterations, pears, vis, voxel_model, z_dim, gamma
 
 
 def train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger,
                checkpoint_every=500, epoch_it=0, eval_network=500, it=0, max_iterations=5000, pears=500,
-               vis=500, error=0):
+               vis=500, error=0, gamma=0.9):
     '''
     Execute the training for the given parameters
     :param checkpoint_every:

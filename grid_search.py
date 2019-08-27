@@ -22,8 +22,10 @@ def parse_args():
     parser.add_argument("-z", "--z_dim", nargs=1, default=[128], type=int, help="Set the dimension of the latent space")
     parser.add_argument("-i", "--max_iterations", nargs=1, default=[10000], type=int, help="Set max epoch iteration")
     parser.add_argument("-o", "--output_dir", nargs=1, default=[''], type=str, help="Set output dir")
-    parser.add_argument("-b", "--batch", nargs=1, default=[50], type=int, help="Batchsize")
+    parser.add_argument("-b", "--batch", nargs=1, default=[2], type=int, help="Batchsize")
     parser.add_argument("-e", "--error", nargs=1, default=[1], type=int, help="Quit training when error is reached!")
+    parser.add_argument('-v', '--validate', nargs=1, default=[1], type=int,
+                        help="Set iteration for turning on all validations")
 
     args = parser.parse_args()
 
@@ -34,16 +36,12 @@ def parse_args():
     print(max_iterations)
     batch_size = args.batch[0]
     error = args.error[0]
-    return args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error
+    validate = args.validate[0]
+    return args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error, validate
 
 
-
-
-def  main():
-
-
-    args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error = parse_args()
-
+def main():
+    args, batch_size, current_dir, max_iterations, voxel_model, z_dim, error, validate = parse_args()
 
     for z in z_dim:
         DATASET_PATH, OUT_DIR, model_name = create_work_dirs(args, batch_size, current_dir, voxel_model, z)
@@ -57,16 +55,15 @@ def  main():
 
         # Tensorboard initializing
 
-
         logger = SummaryWriter(
             os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S' + model_name[5:-3])))
 
         # Model and trainer loading
         checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z)
 
-
-        train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error, max_iterations=max_iterations, epoch_it=epoch_it, it=it)
-
+        train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error,
+                   max_iterations=max_iterations, epoch_it=epoch_it, it=it, checkpoint_every=500,
+                   eval_network=validate, pears=validate, vis=validate)
 
 
 if __name__ == '__main__':
