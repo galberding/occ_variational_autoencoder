@@ -334,10 +334,10 @@ class Trainer(BaseTrainer):
         c = torch.empty(128, 0)
         # General points
         pr = self.model.decode(p, z, c, **kwargs)
-        # loss_i = F.binary_cross_entropy_with_logits(pr.logits, occ, reduction='none')
+        loss_i = F.binary_cross_entropy_with_logits(pr.logits, occ, reduction='none')
 
-        loss_in =  bin_cross_entropy(pr.probs, occ).sum(-1).mean()
-        # loss_i = loss_i.sum(-1).mean()
-        loss = loss + loss_in
+        # loss_in =  bin_cross_entropy(pr.probs, occ).sum(-1).mean()
+        loss_i = loss_i.sum(-1).mean()
+        loss = loss + loss_i
 
         return loss
