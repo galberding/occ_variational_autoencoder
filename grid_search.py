@@ -58,7 +58,7 @@ def main():
         logger = SummaryWriter(
             os.path.join(OUT_DIR, datetime.datetime.now().strftime('logs_%Y_%m_%d_%H_%M_%S' + model_name[5:-3])))
 
-        # Model and trainer loading
+        # Model and tr
         checkpoint_io, epoch_it, it, trainer = load_trainer_from_model(OUT_DIR, device, model_name, z)
 
         train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vis_train_loader, logger, error=error,
