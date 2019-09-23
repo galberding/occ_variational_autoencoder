@@ -32,7 +32,7 @@ class OccupancyNetwork(nn.Module):
         device (device): torch device
     '''
 
-    def __init__(self, decoder=decoder_dict["batchnorm"], encoder=None, encoder_latent=encoder_latent_dict["advance"],
+    def __init__(self, decoder=decoder_dict["batchnorm"], encoder=None, encoder_latent=encoder_latent_dict["simple"],
                  p0_z=None,
                  device=None, z_dim=2, logger=None):
         super().__init__()
@@ -53,6 +53,7 @@ class OccupancyNetwork(nn.Module):
                 print("Voxel encoder chooosed!")
                 # self.latent_voxel = True
             else:
+                print("Simple encoder coosen!")
                 # self.latent_voxel = False
                 pass
             self.encoder_latent = encoder_latent(z_dim=z_dim).to(device)

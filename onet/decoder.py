@@ -54,7 +54,6 @@ class Decoder(nn.Module):
 
         if self.z_dim != 0:
             net_z = self.fc_z(z).unsqueeze(1)
-            # net = torch.cat((net,net_z), 2)
             net = net + net_z
 
         # if self.c_dim != 0:
@@ -71,6 +70,7 @@ class Decoder(nn.Module):
         out = out.squeeze(-1)
 
         return out
+
 
 
 

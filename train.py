@@ -162,7 +162,7 @@ def train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vi
             loss = trainer.train_step(batch)
             logger.add_scalar('train/loss', loss, it)
             print("Epoch: ", epoch_it, " Iteration: ", it, " Loss: ", loss)
-            if (checkpoint_every > 0 and (it % checkpoint_every) == 0):
+            if (eval_network > 0 and (it % eval_network) == 0):
                 print('Saving checkpoint')
                 checkpoint_io.save(model_name, epoch_it=epoch_it, it=it)
             if (eval_network > 0 and (it % eval_network) == 0):
@@ -173,7 +173,7 @@ def train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vi
                 logger.add_scalar('val/iou', (eval_dict['iou']), it)
                 print("Evaluated network")
 
-            if (it % vis == 0):
+            if (it % eval_network == 0):
                 figs_test = trainer.visualize(test_loader)
                 figs_train = trainer.visualize(vis_train_loader)
 
@@ -187,16 +187,16 @@ def train_loop(model_name, checkpoint_io, test_loader, train_loader, trainer, vi
                 for i, tag in enumerate(['']):
                     logger.add_figure('val/latent_attr_vis/' + tag, latent_vis[i], it)
 
-            if (it % pears == 0):
-                # zs = trainer.calculate_pearson(test_loader)
-                zs = trainer.calculate_pears(test_loader)
-                print(zs)
-                multiscal_tags = []
-                for k, v in zs.items():
-                    for k2, v2 in v.items():
-                        tag = 'pearson_z_' + str(k) + '/' + k2
-                        logger.add_scalar(tag, v2, it)
-                        multiscal_tags.append(tag)
+            # if (it % pears == 0):
+            #     # zs = trainer.calculate_pearson(test_loader)
+            #     zs = trainer.calculate_pears(test_loader)
+            #     print(zs)
+            #     multiscal_tags = []
+            #     for k, v in zs.items():
+            #         for k2, v2 in v.items():
+            #             tag = 'pearson_z_' + str(k) + '/' + k2
+            #             logger.add_scalar(tag, v2, it)
+            #             multiscal_tags.append(tag)
 
 
 def load_trainer_from_model(OUT_DIR, device, model_name, z_dim):

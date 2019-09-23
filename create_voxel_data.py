@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # TODO: Add sizes, path and points to generate
     args = parser.parse_args()
     current_dir = (os.getcwd())
-    dataset_path = "data/dataset"
+    dataset_path = "../generativeVAE/data/dataset"
     voxel_model = args.model[0]
     samples = args.samples[0]
     print(samples, voxel_model)

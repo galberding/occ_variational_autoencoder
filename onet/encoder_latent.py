@@ -65,8 +65,8 @@ class Encoder(nn.Module):
         net = self.fc_0(x.unsqueeze(-1))
         net = net + self.fc_pos(p)
 
-        if self.c_dim != 0:
-            net = net + self.fc_c(c).unsqueeze(1)
+        # if self.c_dim != 0:
+        #     net = net + self.fc_c(c).unsqueeze(1)
 
         net = self.fc_1(self.actvn(net))
         pooled = self.pool(net, dim=1, keepdim=True).expand(net.size())

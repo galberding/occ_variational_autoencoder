@@ -133,7 +133,7 @@ class Trainer(BaseTrainer):
     '''
 
     def __init__(self, model, optimizer, device=None, input_type='img',
-                 vis_dir=None, threshold=0.5, eval_sample=False):
+                 vis_dir=None, threshold=0.4, eval_sample=False):
         self.model = model
         self.optimizer = optimizer
         self.device = device
@@ -335,11 +335,11 @@ class Trainer(BaseTrainer):
         # General points
         pr = self.model.decode(p, z, c, **kwargs)
 
-        # loss_i = F.binary_cross_entropy_with_logits(pr.logits, occ, reduction='none')
-        # loss_i = loss_i.sum(-1).mean()
-        # loss = loss + loss_i
+        loss_i = F.binary_cross_entropy_with_logits(pr.logits, occ, reduction='none')
+        loss_i = loss_i.sum(-1).mean()
+        loss = loss + loss_i
 
-        loss_in =  bin_cross_entropy(pr.probs, occ).sum(-1).mean()
-        loss = loss + loss_in
+        #loss_in =  bin_cross_entropy(pr.probs, occ).sum(-1).mean()
+        #loss = loss + loss_in
 
         return loss
