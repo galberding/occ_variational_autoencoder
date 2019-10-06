@@ -81,7 +81,8 @@ def create_work_dirs(args, batch_size, current_dir, voxel_model, z_dim):
         print("Model not known!")
         exit(0)
     out_path = "out/"
-    data_path = "data/dataset/"
+    data_path = "../Datasets/VoxelPenQubes/"
+    # data_path = "data/dataset/"
     model_name = 'model' + '_z_dim_' + str(z_dim) + '_batch_' + str(batch_size) + '.pt'
     DATASET_PATH = os.path.join(current_dir, data_path, voxel_model, '')
     print(DATASET_PATH)
